@@ -1,0 +1,25 @@
+.dark-post-theme {
+    background-color: rgb(50,50,50);
+}
+
+.light-post-theme {
+    background-color: rgb(220,220,220);
+}
+
+.post-block {
+    display:flex;
+    border-radius:10px;
+    height: 200px;
+    width: 700px;
+    margin: auto;
+}
+
+.post-inner {
+    height: 180px;
+    width: 680px;
+    margin: auto;
+    display: grid;
+    grid-template-rows: 1fr 2fr 1fr;
+}
+
+
