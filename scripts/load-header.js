@@ -13,9 +13,12 @@ document.addEventListener("DOMContentLoaded", function() {
             </div>
         
             <div class="header-item">
-                <a href="[FOLDER]/index.html" title="Posts" style="text-decoration: none; color:inherit">
-                    <span class="active">Disarray</span>
-                </a>
+
+                <div class="title">
+                    <a href="[FOLDER]/index.html" title="Posts" style="text-decoration: none; color:inherit">
+                        <span class="active">Disarray</span>
+                    </a>
+                </div>
             </div>
         
             <div class="header-item">

@@ -27,8 +27,22 @@ html body {
     place-items:center;
 }
 
+.footer-contacts {
+    width: 720px;
+    height: 80px;
+    margin-top: 120px;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+    display: inline-grid;
+    place-items:center;
+}
+
 .header-item {
     font-size: 20px;
+}
+
+.footer {
+    width: 720px;
+    height: 200px;
 }
 
 .title {
@@ -42,6 +56,18 @@ html body {
     font-size: 32px;
 }
 
+.cite {
+    color : rgb(110,110,110);
+    display: inline-block;
+}
+
+.bibliography {
+    color: rgb(110,110,110);
+    text-align: left;
+}
+
+
+
 h1 {
     font-size: 24px;
 }
@@ -50,8 +76,14 @@ h2 {
     font-size: 20px;
 }
 
+h3 {
+    font-size: 20px;
+    color: rgb(110,110,110);
+}
+
 p {
-    color: rgb(100,100,100);
+    color: rgb(110,110,110);
+    text-align: justify;
 }
 
 a {

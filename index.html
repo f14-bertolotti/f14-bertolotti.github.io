@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="style.css">
         <link rel="stylesheet" href="post.css">
-        <title>Pandemonium</title>
+        <title>Disarray</title>
 
     </head>
     
@@ -16,25 +16,35 @@
         <div id="header"></div>
         
         <h1>
-            ✨ Welcome to Pandemonium
+            <img id="theme-icon" width=20px height=20px src="icons/spark.svg"/> Welcome to Disarray
         </h1>
 
         <p>
-            Hello and welcome! This blog is a treasure trove of my personal learning adventures, challenges, and insights. Dive in, explore, and who knows? You might just stumble upon something that sparks your curiosity!
+            Hello and welcome to my blog! As a postdoctoral researcher in machine learning and artificial intelligence, I’m here to share my journey, insights, and notes with you. I strive to be as clear and grounded as possible, and I hope you’ll find something interesting and valuable in my posts.
         </p>
 
-        <a href="posts/cce-minimizer.html" style="text-decoration: none; color:inherit">
+
+        <div onclick="location.href='posts/28-08-2024-cce-minimizer/index.html';" style="cursor: pointer;">
         <article class="light-post-theme post-block"> 
             <div class="post-inner">
-                <h2> Population Minimizer of The Categorical Cross Entropy Loss </h2>
-                <p> Full derivation of the population minimizer of the Categorical Cross Entropy Loss. </p>
-                <p> Date: July 7, 2024  |  Estimated Reading Time: 30 min </p>
+                <div class="post-title"> 
+                    Population Minimizer of The Categorical Cross Entropy Loss 
+                </div>
+                <div class="post-desc"> 
+                    In this post, I will explore how to find the population minimizer for the conditional risk associated with Categorical Cross Entropy. We will use only basic fundamental probability principles in order to make the derivation accessible to anyone with a basic understanding of probability. The only analytical tool needed are the Lagrange multipliers for constrained optimization problems.
+                </div>
+                <div class="post-foot"> 
+                    <img src="icons/clock.svg" width=12px height=12px/> Date: 29 August, 2024  |  Estimated Reading Time: 10-30 min 
+                </div>
             </div>
         </article>
-        </a>
+        </div>
+
+        <div id="footer"></div>
 
         <script src="scripts/toggle-theme.js"></script>
         <script src="scripts/load-header.js"></script>
+        <script src="scripts/load-footer.js"></script>
     </body>
 
 </html>

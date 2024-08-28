@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../../style.css">
+        <link rel="stylesheet" href="../../post.css">
+        <title>Disarray</title>
+
+    </head>
+    
+    <body>
+
+        <div id="root-folder" value="../../"></div>
+
+        <div id="header"></div>
+
+        <div class="post-body">
+            <h1> Population Minimizer of The Categorical Cross Entropy Loss </h1>
+
+            <h3> Categorical Cross Entropy </h3>
+            
+            <p>
+                Categorical Cross Entropy (CCE) loss is a fundamental component in deep learning, especially when handling multiple labels. It is widely used in various practical applications, such as language models.
+            </p>
+
+            <p>
+                To formally define CCE loss, we first introduce a sample distribution, denoted as \(\mathcal{D}\). From this distribution, we can obtain input-label pairs, \(x, y \sim \mathcal{D}\). For instance, \(x\) might represent an image and \(y\) its corresponding label. The conditional distribution of \(y\) given \(x\) is represented as \(p(y|x)\). For clarity, let’s define the label domain as \(y \in \mathcal{Y}\), where \(\mathcal{Y} = \{1, \dots, K\}\), and let \(x\) belong to the domain \(\mathcal{X}\).
+            </p>
+
+            <p>
+                Ideally, we aim to find a classifier \(f^*\) that aligns perfectly with the probability distribution \(p(y|x)\), such that \(\forall y \in \mathcal{Y}, x \in \mathcal{X}: f^*(y|x) = p(y|x)\). In this context, \(f^*(x)\) yields a probability distribution, and \(f^*(y|x)\) represents the probability assigned to \(y\) given \(x\) by \(f^*\). Additionally, we will denote with \(\mathbb{I}(\cdot)\) the indicator function. Finally, for an input-label pair, \(x,y\), we can write the CCE loss as: 
+
+                \[ \mathcal{L^{\operatorname{CCE}}} = -\sum_{j=1}^K \mathbb{I}(y=j)\log(f(j|x)) \]
+            </p>
+
+
+            <h3> Cross Entropy </h3>
+            
+            <p>
+                The most observant readers might notice a strong resemblance between CCE and <a href="https://en.wikipedia.org/wiki/Cross-entropy">cross entropy</a> (CE). If you're not yet familiar with CE, don't worry. Essentially, the CE is "kind of" a distance between two probability distributions. Formally, for two distributions \(p\) and \(q\), CE is defined as:
+            
+                \[H(p,q) = -\sum_x p(x) \log(q(x))\]
+            </p>
+
+            <p>
+                We can now recognize \(f(j|x)\) as a probability distribution playing the role of \(q\). But what about \(\mathbb{I}(y=j)\)? This indicator function represents a one-hot distribution where the probability is entirely concentrated at the value \(y\). Such distribution plays the role of \(p\). With this understanding, it becomes clear that CE is essentially a generalization of CCE.
+            </p>
+
+            <p>
+                It can also be demonstrated that if we are given a distribution \(p\) and seek to find a distribution \(q\) that minimizes the CE, the only solution we will find is \(p\) itself. This makes intuitive sense because minimizing the CE aligns with training a classifier to adjust its prediction probabilities toward a one-hot distribution for the label.
+            </p>
+
+            <h3> Cross Entropy Maximization </h3>
+
+            <p>
+                For sake of completeness, let’s provide a proof for the previous statement. For simplicity, we will represent the distributions \(p\) and \(q\) as basic stochastic vectors, which are vectors whose elements sum to 1.
+                \[
+                    \underset{q, \sum_i q_i = 1}{\operatorname{argmin}}\{ H(p,q) \} = \\
+                    \underset{q, \sum_i q_i = 1}{\operatorname{argmin}}\left\{ \sum_i p_i \log(q_i) \right\}
+                \]
+
+                To tackle this constrained minimization problem, we can use the <a href="https://en.wikipedia.org/wiki/Lagrange_multiplier">Lagrange Multiplier</a> method. This approach involves finding the <a href="https://en.wikipedia.org/wiki/Stationary_point">stationary points</a> of the corresponding Lagrange function (This proof was adapted from <span class="cite" value="Hastie09"></span>).
+                \[
+                    \mathcal{L}(q_0,\dots,q_K,\lambda) = \sum_i p_i \log(q_i) + \lambda \left( \sum_i q_i - 1 \right)
+                \]
+                
+                The stationary points can be found by solving the following system of equations:
+                
+                \[
+                    \left\{ 
+                    \begin{array}{c}
+                        \frac{\partial}{\partial q_0} \mathcal{L}(q_0,\dots,q_K,\lambda) = 0 \\ 
+                        \dots \\
+                        \frac{\partial}{\partial q_K} \mathcal{L}(q_0,\dots,q_K,\lambda) = 0 \\ 
+                        \frac{\partial}{\partial\lambda} \mathcal{L}(q_0,\dots,q_K,\lambda) = 0 \\ 
+                    \end{array}
+                    \right. = 
+                    
+                    \left\{ 
+                    \begin{array}{c}
+                        \frac{p_1}{q_1} + \lambda = 0 \\ 
+                        \dots \\
+                        \frac{p_K}{q_K} + \lambda = 0 \\ 
+                        \sum_i q_i - 1 = 0 \\ 
+                    \end{array}
+                    \right. = 
+
+                    \left\{ 
+                    \begin{array}{c}
+                        p_1 = - \lambda q_1 \\ 
+                        \dots \\
+                        p_K = - \lambda q_K \\ 
+                        \sum_i q_i = 1 \\ 
+                    \end{array}
+                    \right.
+                \]
+
+                Since \(p_i = -\lambda q_i\) for all \(i \in \{1,\dots,K\}\), it follows that \(\sum_i p_i = -\lambda \sum_i q_i\). However, both \(p\) and \(q\) are stochastic vectors, meaning they each sum to 1. This leads us to the conclusion that \(\lambda = -1\). Plugging this result back into the system of equations, we can easily see that \(p = q\).
+                
+                In other words, \(p\) is the stationary point of \(\mathcal{L}(q_0,\dots,q_K,\lambda)\) and, therefore, minimizes \(H(p,\cdot)\) subject to the condition that \(q\) is a stochastic vector.
+            </p>
+
+            <h3> Categorical Cross Entropy Population Minimizer </h3>
+
+            <p>
+                Now, you might wonder why we train the classifier to match a one-hot distribution, \(\mathbb{I}(y=i)\), when what we truly want is a model that represents the actual probability distribution \(p(y|x)\), not just a one-hot vector. To address this, we need to reintroduce the data distribution \(\mathcal{D}\) into the discussion. Specifically, we'll look at the conditional expected value of the CCE loss, which is given by:
+                \[
+                    \mathcal{R}_x(f) = \underset{y|x}{\mathbb{E}}\left[-\sum_{i=1}^K \mathbb{I}(y=i)\log(f(i|x))\right]
+                \]
+
+                This approach is closely related to the <a href="https://en.wikipedia.org/wiki/Empirical_risk_minimization">risk minimization principle</a> in statistical learning theory. The key difference is that we're dealing with a conditional expectation rather than a joint one. However, the core idea remains the same: we aim to train a classifier that, given a data point \(x\), minimizes the loss across all possible labels that could be associated with \(x\).
+            </p>
+
+            <p>
+                Of course, minimizing \(\mathcal{R}_x(f)\) isn't feasible without knowing the conditional probability \(p(y|x)\), which is typically unknown in real-world scenarios. Instead, we minimize the empirical risk, which is an estimate of the risk based on a fixed number of input-label pairs---essentially, a batch. While guarantees about convergence depend on the data distribution and the hypothesis class of the classifiers, it’s still insightful to explore what an optimal classifier should output to minimize \(\mathcal{R}_x\).
+                \[
+                \begin{aligned}
+                \underset{f, \text{ subject to } \sum_i f(i|x)=1}{\operatorname{argmin}}\{\mathcal{R}_x(f)\} &= 
+                    \underset{f, \text{ subject to } \sum_i f(i|x)=1}{\operatorname{argmin}}\left\{-\underset{y|x}{\mathbb{E}}\left[\sum_{j=1}^K \mathbb{I}(y=j)\log(f(j|x))\right]\right\} \\
+                &= \underset{f, \text{ subject to } \sum_i f(i|x)=1}{\operatorname{argmin}}\left\{-\underset{y|x}{\mathbb{E}}\left[\log(f(y|x))\right]\right\} \\
+                &= \underset{f, \text{ subject to } \sum_i f(i|x)=1}{\operatorname{argmin}}\left\{-\sum_i p(i|x) \log(f(i|x))\right\} \\
+                \end{aligned}
+                \]
+
+                This should look familiar---it’s the CE again. We already know that the optimal value that minimizes the CE for a given distribution \(p(\cdot|x)\) is \(p(\cdot|x)\) itself. Therefore, to minimize the conditional risk \(\mathcal{R}_x\), the optimal classifier must align with the conditional probability, meaning that for all \(y\), \(\forall y\in\mathcal{Y}: f^*(y|x) = p(y|x)\).
+            </p>
+            
+            <h3> Final Remarks </h3>
+
+            <p>
+                Of course, we must recognize that we're dealing with highly complex distributions, so assuming that your classifier perfectly aligns with the true conditional probability is a strong statement and likely not accurate <span class="cite" value="Guo17"></span>. However, this assumption can be reasonable when analyzing certain frameworks from a theoretical standpoint. For example, the well-known work by Oord et al. <span class="cite" value="Oord18"></span>, which popularizes the use of CCE in contrastive learning, operates under this very hypothesis.
+            </p>
+
+        </div>
+
+        <div class="bibliography"></div>
+        <div id="footer"></div>
+        
+        <script src="../../scripts/toggle-theme.js"></script>
+        <script src="../../scripts/load-header.js"></script>
+        <script src="../../scripts/load-footer.js"></script>
+        <script src="../../scripts/load-cits.js"></script>
+        <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+    </body>
+
+</html>
+

@@ -17,9 +17,25 @@
 .post-inner {
     height: 180px;
     width: 680px;
-    margin: auto;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     display: grid;
-    grid-template-rows: 1fr 2fr 1fr;
+    grid-template-rows: 1fr 4fr 1fr;
 }
 
+.post-title {
+    font-size: 20px;
+    font-weight: 700;
+}
 
+.post-desc {
+    color: rgb(110,110,110);
+    text-align: justify;
+    margin: auto;
+}
+
+.post-foot {
+    color: rgb(110,110,110);
+}
