@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <div class="header-item">
 
                 <div class="title">
-                    <a href="[FOLDER]/index.html" title="Posts" style="text-decoration: none; color:inherit">
+                    <a href="[FOLDER]/index.html" title="Posts" style="text-decoration: none; color:var(--header-color)">
                         <span class="active">Disarray</span>
                     </a>
                 </div>
@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function() {
         
             <div class="header-item">
                 <div class="elem">
-                    <a href="[FOLDER]/index.html" title="Posts" style="text-decoration: none; color:inherit">
+                    <a href="[FOLDER]/index.html" title="Posts" style="text-decoration: none; color:var(--header-color)">
                         <span class="active">Posts</span>
                     </a>
                 </div>
@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             <div class="header-item">
                 <div class="elem">
-                    <a href="[FOLDER]/about.html" title="About" style="text-decoration: none; color:inherit">
+                    <a href="[FOLDER]/about.html" title="About" style="text-decoration: none; color:var(--header-color)">
                         <span class="active">About</span>
                     </a>
                 </div>

@@ -1,13 +1,7 @@
-.dark-post-theme {
-    background-color: rgb(50,50,50);
-}
-
-.light-post-theme {
-    background-color: rgb(220,220,220);
-}
 
 .post-block {
     display:flex;
+    background-color: var(--post-bg-color);
     border-radius:10px;
     height: 200px;
     width: 700px;
@@ -26,16 +20,17 @@
 }
 
 .post-title {
+    color: var(--post-title-color);
     font-size: 20px;
     font-weight: 700;
 }
 
 .post-desc {
-    color: rgb(110,110,110);
+    color: var(--post-desc-color);
     text-align: justify;
     margin: auto;
 }
 
 .post-foot {
-    color: rgb(110,110,110);
+    color: var(--post-foot-color);
 }
