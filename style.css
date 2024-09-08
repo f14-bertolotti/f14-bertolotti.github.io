@@ -8,6 +8,17 @@
     --post-desc-color  : rgb(70  , 70  , 70  );
     --post-foot-color  : rgb(110 , 110 , 110 );
     --post-title-color : rgb(0   , 0   , 0   );
+    --text-font-size   : 16px;
+
+    --code-text-color        : rgb(0   , 0   , 0   );
+    --code-function-color    : rgb(220 , 70  , 100 );
+    --code-number-color      : rgb(220 , 70  , 100 );
+    --code-keyword-color     : rgb(0   , 120 , 170 );
+    --code-operator-color    : rgb(150 , 110 , 60  );
+    --code-string-color      : rgb(100 , 150 , 0   );
+    --code-number-color      : rgb(150 , 0   , 80  );
+    --code-comment-color     : rgb(110 , 130 , 140 );
+    --code-punctuation-color : rgb(150 , 150 , 150 );
 }
 
 body.dark-mode {
@@ -20,8 +31,19 @@ body.dark-mode {
     --post-desc-color  : rgb(200 , 200 , 200 );
     --post-foot-color  : rgb(150 , 150 , 150 );
     --post-title-color : rgb(255 , 255 , 255 );
-}
+    --text-font-size   : 16px;
 
+    --code-text-color        : rgb(255 , 255 , 255 );
+    --code-function-color    : rgb(220 , 100 , 100 ); 
+    --code-number-color      : rgb(0   , 160 , 200 );
+    --code-keyword-color     : rgb(270 , 180 , 0   );
+    --code-operator-color    : rgb(180 , 140 , 90  );
+    --code-string-color      : rgb(160 , 210 , 50  );
+    --code-number-color      : rgb(240 , 80  , 150 );
+    --code-comment-color     : rgb(140 , 160 , 170 );
+    --code-punctuation-color : rgb(180 , 180 , 180 );
+
+}
 
 
 html body {
@@ -102,8 +124,19 @@ h3 {
 p {
     color: var(--text-color);
     text-align: justify;
+    font-size: var(--text-font-size);
+}
+
+ul {
+    color: var(--text-color);
+    text-align: justify;
+}
+
+ol {
+    color: var(--text-color);
+    text-align: justify;
 }
 
 a {
- color:inherit;
+    color:inherit;
 }

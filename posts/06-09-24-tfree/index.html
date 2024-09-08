@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../../style.css">
+        <link rel="stylesheet" href="../../post.css">
+        <link rel="stylesheet" href="../../code.css">
+
+        <title>Disarray</title>
+
+    </head>
+    
+    <body>
+
+        <div id="root-folder" value="../../"></div>
+
+        <div id="header"></div>
+
+        <div class="post-body">
+            <h1> T-Free: Sparse Embedding Representations <span class="cite" value="Deiseroth24"></span></h1>
+
+            <h3> The Challenge of Classical Embeddings </h3>
+            <p>
+
+                In their work, the authors address several issues with classical embedding representations, which are typically built using tokenizers like Byte Pair Encoding <span class="cite" value="Sennrich17"></span> or Unigram <span class="cite" value="Kudo18"></span>, combined with a parameter matrix that maps tokens to their corresponding embedding representations.
+
+                Among these issues, the following are particularly relevant:
+                <ul>
+                    <li>Recently, the number of parameters allocated for embeddings has become exceedingly large, consuming a significant portion of memory.</li>
+                    <li>The authors note that classical tokenizers may reserve space for nearly duplicate tokens, resulting in inefficient use of memory.</li>
+                    <li>Many tokens appear so infrequently that they fail to learn meaningful representations, leading to hallucinations when used.</li>
+                </ul>
+
+            </p>
+
+            <h3> Method </h3>
+
+            <p>
+                The authors propose a method for both text encoding and decoding to address these issues. Let's begin with the encoding process:
+            </p>
+
+            <h4 style="color: var(--text-color);"> Text Encoding </h4>
+
+            <p>
+                First, let's introduce an embedding matrix \(E \in \mathbb{R}^{v \times d}\). This matrix consists of trainable parameters and typically maps tokens to their embedding representations. However, in this approach, each row will represent a different object, which will become clear later.
+            </p>
+
+            <p>
+                Next, we use a whitespace tokenizer to split the sentence into tokens. For example, the sentence <code class="language-python">"Hello world !"</code> would be tokenized into <code class="language-python">["Hello", "world", "!"]</code>.
+            </p>
+
+            <p>
+                Additionally, we append a special character at the start and end of each token. Thus, the sentence <code class="language-python">"Hello world !"</code> becomes <code class="language-python">["_Hello_", "_world_", "_!_"]</code>. This step probably helps the model learn the boundaries of each token.
+            </p>
+
+            <p>
+                Next, we convert each token into a trigram list. For example, the token <code class="language-python">"_Hello_"</code> is transformed into <code class="language-python">["_He", "Hel", "ell", "llo", "lo_"]</code>.
+            </p>
+
+            <p>
+                We then map each trigram to a set of indices for the embedding matrix. The number of indices, denoted as \(m\), can be considered a hyperparameter. Each index is computed using a hash (we need \(m\) hash functions) function modulo the \(v\) rows in the embedding matrix. For example, the trigram <code class="language-python">"_He"</code> might be mapped to the indices <code class="language-python">[0, 32, 66]</code>.
+            </p>
+
+            <p>
+                Finally, we sum the embeddings of the indices to obtain the final embedding representation of the token.
+            </p>
+
+            <p>
+                Ultimately, from our sentence <code class="language-python">"Hello world !"</code> we would go through the following steps:
+                <ol>
+                    <li> Start: <code class="language-python">"Hello world !"</code> </li>
+                    <li> Tokenize: <code class="language-python">["Hello","world","!"]</code> </li>
+                    <li> Append: <code class="language-python">["_Hello_","_world_","_!_"]</code> </li>
+                    <li> Trigram: <code class="language-python">[["_He",...,"lo_"],[...],[...]}</code> </li>
+                    <li> hash & modulo: <code class="language-python">[[[0,32,66],...,[6,21,12]],[...],[...]]</code> </li>
+                    <li> aggregate: <code class="language-python">[E[0]+E[32]+E[66]+...+E[6]+E[21]+E[12],...,...]</code> </li>
+                </ol>
+            </p>
+
+            <p>
+                If a word has \(n\) trigrams and we use \(m\) indices per trigram (or, \(m\) hashes per trigram), the resulting embedding is the sum of \(nm\) embeddings from the matrix \(E\).
+            </p>
+
+            <p> 
+                With some simplification (mainly regarding the tokenization step), we can express the function that performs steps 1 through 5 as follows:
+            </p>
+
+            <pre>
+<code class="language-python">def token2indices(token, num_embeddings, hashes):
+  trigrams = [token[i:i+3] for i in range(len(token)-2)] 
+  indices  = [[hash(tri) % num_embeddings  for hash in hashes] for tri in trigrams]
+  return indices
+
+def sentence2indices(sentence, num_embeddings, num_hashes):
+  hashes = [lambda x, i=i: hash((x, i)) for i in range(num_hashes)]
+  tokens = [f"_{token}_" for token in sentence.split()]
+  return [token2indices(token, num_embeddings, hashes) for token in tokens] </code>
+            </pre>
+
+            <p>
+                The final step involves summing all the embeddings corresponding to the indices of the same token. Ultimately, this process ensures that similar tokens will end-up having similar embeddings.
+            </p>
+
+            <p>
+                Additionally, we can pre-compute the indices for each token. During training, we simply map each token to its pre-computed indices and sum the corresponding embeddings.
+            </p>
+
+            <h4 style="color: var(--text-color);"> Text Decoding </h4>
+
+            <p>
+                Before introducing the decoding algorithm, it is helpful to use a different representation than the list of indices we used previously. Specifically, we can use a sparse vector to represent the same information. For example, here is the function that maps a word to its sparse representation:
+            <pre>
+<code class="language-python">def token2sparse(token, num_embeddings, hashes):
+  sparse = [0] * num_embeddings
+  for trigram in [token[i:i+3] for i in range(len(token)-2)]:
+    for h in hashes:
+      sparse[h(trigram) % num_embeddings] = 1
+  return sparse </code>
+            </pre>
+            </p>
+
+            <p>
+                Note that the resulting sparse vector is mostly a zero-vector, except for the \(nm\) entries (where \(n\) is the number of trigrams and \(m\) is the number of indices) corresponding to the indices of the token. We can think of this sparse representation as an activation vector for the matrix \(E\).
+            </p>
+
+            <p>
+                We start with an embedding representation \(x \in \mathbb{R}^{1 \times d}\). This representation could result from several transformer layers or any other architecture. In any case, our goal is to decode it back to a word.
+            </p>
+
+            <p>
+                We multiply \(x\) with the transpose of the embedding matrix \(E^T\) (\(s = xE^T \in \mathbb{R}^{1 \times v}\)), similar to the classical approach. This results in a logit vector, which indicates how much the representation \(x\) attends to each embedding in \(E\). The authors then apply a sigmoid function to the logits to normalize each activation to the range \([0,1]\).
+            </p>
+
+            <p>
+                Next, the authors multiply the sparse word activation matrix \(A \in \mathbb{R}^{V \times v}\) by the score vector \(s\), resulting in \(z = A\sigma(s) \in \mathbb{R}^{V \times 1}\). Here, \(V\) represents the number of possible words we can decode to (in other words, the vocabulary size). Each entry in \(A\) corresponds to a word and is essentially the sparse representation associated with that word; you can think of it as the output of the function <code class="language-python">token2sparse</code>.
+            </p>
+
+            <p>
+                The final step is to normalize the resulting vector \(z\). The authors first divide each entry by the sum of all entries to normalize it. Then, they apply a softmax function to obtain the final probability distribution over the vocabulary.
+            </p>
+
+            <p>
+                Next, the decoding can be performed by selecting the word with the highest probability or by using an alternative decoding technique.
+            </p>
+
+            <p>
+                Intuitively, this means that words which activate \(E\) in a manner similar to \(x\) will have a higher probability of being chosen.
+            </p>
+
+
+        <h4 style="color: var(--text-color);"> Training Objective  </h4>
+
+        <p>
+            The authors also use the multi-label binary cross-entropy loss. This is likely intended to encourage the network to activate the embeddings corresponding to the correct word. However, in principle, this framework could also work with traditional categorical cross-entropy loss.
+        </p>
+            
+        <h3> Review </h3> 
+
+        <p>
+            The work is extremely interesting, though the presentation can be somewhat difficult to follow, especially in the text decoding section. It fundamentally challenges our understanding of embeddings by proposing an innovative alternative that effectively addresses many of the issues associated with the classical approach.
+        </p>
+
+        <p>
+            Nonetheless, their work presents a few, I would say, oddities, particularly during the decoding phase. For instance, why do the authors apply two different normalizations during decoding (dividing by the sum of entries and then applying softmax)? Additionally, while the authors claim their approach is tokenizer-free, a whitespace tokenizer is still used. It might be more accurate to describe it as a training-free tokenizer. The decoding scheme is also somewhat more complex than one might expect. For example, why do the authors not directly multiply the vector representation (previously \(x\)) with each word embedding? Perhaps this approach is not particularly efficient, leading to the development of an alternative, but this rationale is not discussed in the paper.
+        </p>
+
+        </div>
+
+        <div class="bibliography"></div>
+        <div id="footer"></div>
+        
+        <script src="../../scripts/toggle-theme.js"></script>
+        <script src="../../scripts/load-header.js"></script>
+        <script src="../../scripts/load-footer.js"></script>
+        <script src="../../scripts/load-cits.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+
+</script>
+    </body>
+
+</html>
+

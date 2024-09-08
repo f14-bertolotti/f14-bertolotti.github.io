@@ -78,5 +78,29 @@ const bibliography = {
         "pages"     : "349--360",
         "year"      : "2009",
         "publisher" : "International Press of Boston"
+    },
+
+    "Deiseroth24" : {
+        "title"   : "T-FREE: Tokenizer-Free Generative LLMs via Sparse Representations for Memory-Efficient Embeddings",
+        "author"  : "Deiseroth, Bjorn and Brack, Manuel and Schramowski, Patrick and Kersting, Kristian and Weinbach, Samuel",
+        "journal" : "arXiv preprint arXiv:2406.19223",
+        "year"    : "2024"
+    },
+
+    "Sennrich17" : {
+        "title"     : "How Grammatical is Character-level Neural Machine Translation? Assessing MT Quality with Contrastive Translation Pairs",
+        "author"    : "Sennrich, Rico",
+        "booktitle" : "Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics: Volume 2, Short Papers",
+        "pages"     : "376--382",
+        "year"      : "2017"
+    },
+
+    "Kudo18" : {
+        "title"   : "Sentencepiece: A simple and language independent subword tokenizer and detokenizer for neural text processing",
+        "author"  : "Kudo, T",
+        "journal" : "arXiv preprint arXiv:1808.06226",
+        "year"    : "2018"
     }
+
+
 }
