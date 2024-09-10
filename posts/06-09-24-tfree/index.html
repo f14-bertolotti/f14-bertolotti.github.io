@@ -42,9 +42,15 @@
             </p>
 
             <h4 style="color: var(--text-color);"> Text Encoding </h4>
+            
+            <p>
+            Firstly, let me draw a figure to illustrate the encoding process:
+            </p>
+
+            <img width=720 src="encode.svg"/>
 
             <p>
-                First, let's introduce an embedding matrix \(E \in \mathbb{R}^{v \times d}\). This matrix consists of trainable parameters and typically maps tokens to their embedding representations. However, in this approach, each row will represent a different object, which will become clear later.
+                Let's introduce an embedding matrix \(E \in \mathbb{R}^{v \times d}\) (in the figure this is represented by vertical rectangle). This matrix consists of trainable parameters and typically maps tokens to their embedding representations. However, in this approach, each row will represent a different object, which will become clear later.
             </p>
 
             <p>
@@ -60,11 +66,11 @@
             </p>
 
             <p>
-                We then map each trigram to a set of indices for the embedding matrix. The number of indices, denoted as \(m\), can be considered a hyperparameter. Each index is computed using a hash (we need \(m\) hash functions) function modulo the \(v\) rows in the embedding matrix. For example, the trigram <code class="language-python">"_He"</code> might be mapped to the indices <code class="language-python">[0, 32, 66]</code>.
+                We then map each trigram to a set of indices for the embedding matrix. The number of indices, denoted as \(m\), can be considered a hyperparameter. Each index is computed using a hash (we need \(m\) hash functions) function modulo the \(v\) rows in the embedding matrix. In the figure, we use two hash functions, one represented by a continuos line, and the other by a dashed line. For example, the trigram <code class="language-python">"_He"</code> might be mapped to the indices <code class="language-python">[0, 32, 66]</code>.
             </p>
 
             <p>
-                Finally, we sum the embeddings of the indices to obtain the final embedding representation of the token.
+                Finally, we sum the embeddings of the indices to obtain the final embedding representation of the token. These are represented in the bottom level of the figure.
             </p>
 
             <p>
@@ -163,7 +169,7 @@ def sentence2indices(sentence, num_embeddings, num_hashes):
         </p>
 
         <p>
-            Nonetheless, their work presents a few, I would say, oddities, particularly during the decoding phase. For instance, why do the authors apply two different normalizations during decoding (dividing by the sum of entries and then applying softmax)? Additionally, while the authors claim their approach is tokenizer-free, a whitespace tokenizer is still used. It might be more accurate to describe it as a training-free tokenizer. The decoding scheme is also somewhat more complex than one might expect. For example, why do the authors not directly multiply the vector representation (previously \(x\)) with each word embedding? Perhaps this approach is not particularly efficient, leading to the development of an alternative, but this rationale is not discussed in the paper.
+            Nonetheless, their work presents a few, I would say, oddities, particularly during the decoding phase. For instance, why do the authors apply two different normalizations during decoding (dividing by the sum of entries and then applying softmax)? Additionally, while the authors claim their approach is tokenizer-free, a whitespace tokenizer is still used. It might be more accurate to describe it as a training-free tokenizer. The decoding scheme is also somewhat more complex than one might expect. For example, why do the authors not directly multiply the vector representation (previously \(x\)) with each word embedding? Perhaps this choice is made to not materialize the full word-embedding matrix, but it would have been an interesting ablation experiment.
         </p>
 
         </div>
