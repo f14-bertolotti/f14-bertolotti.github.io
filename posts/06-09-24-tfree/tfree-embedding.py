@@ -90,4 +90,4 @@ d.extend(l4_circ)
 d.extend(l4_text)
 d.extend(l5_rect)
 
-d.save_png('encode.svg')
+d.save_png('encode.png')
