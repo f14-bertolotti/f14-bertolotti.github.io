@@ -100,7 +100,15 @@ const bibliography = {
         "author"  : "Kudo, T",
         "journal" : "arXiv preprint arXiv:1808.06226",
         "year"    : "2018"
+    },
+
+    "Elhage22" : {
+        "title"   : "Toy models of superposition",
+        "author"  : "Elhage, Nelson and Hume, Tristan and Olsson, Catherine and Schiefer, Nicholas and Henighan, Tom and Kravec, Shauna and Hatfield-Dodds, Zac and Lasenby, Robert and Drain, Dawn and Chen, Carol and others",
+        "journal" : "arXiv preprint arXiv:2209.10652",
+        "year"    : "2022"
     }
+
 
 
 }
