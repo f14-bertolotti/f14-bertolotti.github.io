@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../../style.css">
+        <link rel="stylesheet" href="../../post.css">
+        <link rel="stylesheet" href="../../code.css">
+
+        <title>Disarray</title>
+
+    </head>
+    
+    <body>
+        <div id="root-folder" value="../../"></div>
+
+        <div id="header"></div>
+
+        <div class="post-body">
+
+        <h1> Semantics of LLM, Weight Tying, and a story. </h1>
+
+        <h3> Background </h3>
+
+        <p> Many of you might already be familiar with a technique called weight tying <span class="cite" value="Press16"></span>. In simple terms, weight tying works by sharing the weights between the input embedding layer and the output embedding layer (also known as the unembedding layer, output embedding layer, or pre-softmax layer). This technique is primarily used in the context of language modeling and offers two significant advantages: </p>
+
+        <ul>
+            <li>It reduces the memory footprint by eliminating one of the two largest parameter matrices in large language models (LLMs).</li>
+            <li>It often results in better and faster outcomes.</li>
+        </ul>
+    
+        <p>While the first benefit is widely accepted, the second is a bit more complex. In fact, some LLMs use weight tying, while others do not. For example, I believe that Gemma uses weight tying, whereas LLaMa does not. This raises the question: why is that?</p>
+
+        <p>If you are interested, I found particularly insightful perspectives on this topic in this Reddit <a href="https://www.reddit.com/r/MachineLearning/comments/1d2iurw/d_should_the_embedding_matrix_and_final/"> post </a>. </p>
+
+        <h3> Origin of the Idea </h3>
+
+        <p> Earlier this year, I began exploring how to formalize the concept of semantic equivalence in neural networks. Interestingly, we can adapt the classical notion of semantics, commonly used in programming languages (see <a href="https://en.wikipedia.org/wiki/Denotational_semantics">here</a>). In computer theory, two programs are considered semantically equivalent if, regardless of the context in which they are executed, they yield the same resulting context. To borrow from denotational semantics, we can express this as:
+            \[ p_1 \equiv p_2 \iff \forall \rho : \llbracket p_1 \rrbracket (\rho) = \llbracket p_2 \rrbracket (\rho) \]
+        </p>
+
+        <p>
+            This can be read as: <i>"Program \(p_1\) is semantically equivalent to \(p_2\) if and only if, for all contexts \(\rho\), the evaluation of \(p_1\) with \(\rho\) produces the same result as the evaluation of \(p_2\) with \(\rho\)."</i>
+        </p>
+
+        <p>
+            But how do we adapt this notion to our scenario? Let's consider a simple example from Masked Language Modeling (MLM): 
+        </p>
+
+        <div style="text-align:center;"> <code class="language-python">"The [MASK] of water is half empty/full."</code></div>
+
+        <p> It’s clear that we can use either <code class="language-python">"empty"</code> or <code class="language-python">"full"</code> in this sentence without changing the outcome distribution of the <tt>[MASK]</tt> token. Therefore, we can say that <code class="language-python">"empty"</code> and <code class="language-python">"full"</code> are semantically equivalent in this context (<code class="language-python">"The [MASK] of water is half ___"</code>). Realizing that two tokens are semantically equivalent if they can be swapped without affecting the output distribution, I arrived at this definition: 
+            \[ \sigma_1 \equiv \sigma_2 \iff \forall \rho,y : p(y|\rho,\sigma_1) = p(y|\rho,\sigma_2)\]
+        </p>
+    
+        <h3> Preliminary experiments </h3>
+
+        <p> With this notion in mind, I wanted to explore how a neural network would encode these semantic equivalences in its weights. I suspected that embeddings for semantically equivalent tokens would naturally become closer to each other during training. This intuition was partly based on my knowledge that BERT embeddings capture similar relationships, where words like  <code class="language-python">"learn",</code>  <code class="language-python">"learning",</code> and <code class="language-python">"learned"</code> are clustered together in the embedding space (see <a href="https://home.ttic.edu/~kgimpel/viz-bert/viz-bert.html">here</a>). </p>
+
+        <p>
+        To test this idea, I designed a simple experiment. The goal was to train a Masked Language Model (MLM) on a binary parity problem. Consider a string like <tt>10011D</tt>, where there are three <tt>1</tt>s, indicating that the string is odd. Along with the binary string, I included a parity label (<tt>D</tt> for odd and <tt>E</tt> for even). For instance, other examples could be <tt>11000E</tt> and <tt>00100D</tt>. Then, I introduced a twist: I randomly swapped the symbol <tt>1</tt> with either <tt>A</tt> or <tt>B</tt> with equal probability. So, from a string like <tt>10011D</tt>, you might get something like <tt>A00BAD</tt>. Finally, I masked one of the symbols and trained a model to predict the masked symbol. This process resulted in a dataset like the following:
+        </p>
+        
+        <table style="text-align:center;">
+            <tr><th><tt>00A?00E</tt></th><th><tt>A</tt></th></tr>
+            <tr><th><tt>00A?00E</tt></th><th><tt>B</tt></th></tr>
+            <tr><th><tt>00B?00E</tt></th><th><tt>A</tt></th></tr>
+            <tr><th><tt>00B?00E</tt></th><th><tt>B</tt></th></tr>
+            <tr><th><tt>00B?00E</tt></th><th><tt>0</tt></th></tr>
+        </table> 
+        
+        <p> In this setup, symbols <tt>A</tt> and <tt>B</tt> are semantically equivalent by design—swapping <tt>A</tt> with <tt>B</tt> does not change the outcome distribution. As expected, the embeddings for <tt>A</tt> and <tt>B</tt> converged to be close to each other, while both remained distinct from the embedding of <tt>0</tt>. Interestingly, this behavior was also observed in the output embeddings, which neatly aligns with the principles of the weight tying technique. </p>
+
+        <h3> Formalizing the behavior </h3>
+        <p>  If it were up to me, I would have been content writing a paper on the observation that MLMs learn semantic relationships in both the input and output embedding layers. However, to publish in a reputable conference, a bit of mathematical rigor is usually required (even though math isn’t my strongest suit). So, I attempted to formalize this behavior. </p>
+
+        <h3> Output Embeddings </h3>
+
+        <p>  When it came to the output embeddings, I couldn't prove that two semantically equivalent symbols must be close in the output embedding space. However, I did manage to prove that they would be close under the following condition: 
+            \[ \forall \rho : p(\sigma_1|\rho) = p(\sigma_2|\rho) \]
+        </p>
+
+        <p> Interestingly, this result is purely about conditional probability and doesn’t directly involve labels or semantics. However since it provided some insight, I was reasonably satisfied and decided to move on. </p>
+
+        <h3> Input Embeddings </h3>
+
+        <p>  For the input embeddings, I was able to prove that two semantically equivalent symbols would indeed be close to each other in the input embedding space. However, the assumptions required for this proof were so restrictive that they would likely never hold in a real-world scenario. So, it ended up being a "junk" theorem, written more for the sake of publication than for practical application. Despite this, the intuition behind it still feels compelling. </p>
+
+        <p>  The idea is simple: if two symbols are semantically equivalent—meaning they can be swapped without affecting the model’s output—the easiest way to ensure this is by giving them identical embeddings. In this way, the network's output remains unchanged by definition. </p>
+
+        <p>  Proving this theorem, however, was a real challenge. I spent several days in the lab working on it, only to have my results scrutinized by colleagues and find errors. It took me about two to three weeks to produce a proof that could withstand their reviews. Despite the struggles, I remember this period as a particularly enjoyable part of my PhD journey. </p>
+    
+        <h3> The First Draft </h3>
+
+        <p>  Armed with these two theorems—one for the output embeddings and one for the input embeddings—I began writing the first draft of my paper. My goal was to convey the idea that LLMs are semantic learners. I started by introducing the concept of semantic equivalence, followed by the theorem related to input embeddings. Next, I presented the output embedding theorem. </p>
+
+        <p>  However, as I progressed, I realized that I was missing something crucial: experimental evidence to support the output embedding theorem. While the theoretical groundwork was in place, without empirical validation, the argument felt incomplete (at least this is what a reviewer would say). </p>
+
+        <h3> Back to the experiments </h3>
+
+        <p> As I mentioned earlier, I proved the following implication (though I’m omitting some of the hypotheses here): 
+            \[\forall \rho : p(\sigma_1|\rho)=p(\sigma_2|\rho) \implies E^O(\sigma_1)=E^O(\sigma_2)\]
+        </p>
+        
+        <p> So, I decided to rerun the experiments, this time closely monitoring the output embeddings. As expected, the output embeddings of <tt>A</tt> and <tt>B</tt> did indeed converge, becoming close to each other. </p>
+
+        <p> This finding was quite fascinating to me. On one hand, we have semantically equivalent symbols that are close in the input embedding space. On the other hand, we have conditionally equivalent symbols---those with the same conditional probability across all contexts (\(\forall \rho : p(\sigma_1 | \rho) = p(\sigma_2|\rho)\))---that are close in the output space. </p>
+
+        <h3> Back to the Draft </h3>
+
+        <p>  With these new experiments in hand, I revised the draft, introducing the concept of conditional equivalence and the theorem connecting it to output embeddings. This allowed me to clearly articulate how conditional equivalence is reflected in the output embeddings.  </p>
+
+        <p>  As I was writing, it struck me that the weight tying technique is often employed in these scenarios. But this led to a new question: what happens if we use weight tying with symbols that are conditionally equivalent but not semantically equivalent? On one hand, these symbols should be close in the input embedding space. On the other hand, they should be far apart in the output embedding space because they have different conditional probabilities. However, with weight tying, the input and output spaces are tied together, making it impossible for two symbols to be simultaneously close and far apart. </p>
+
+        <p>  This realization sent me back to the experiments to investigate this particular setting. </p>
+
+        <h3> Back to the Experiments </h3>
+
+        <p>  In our previous experiments, we established that the probability of seeing <tt>A</tt> is the same as <tt>B</tt> in any given context. Now, let's introduce another layer of complexity by replacing the symbol <tt>0</tt> with symbols <tt>X</tt> and <tt>Y</tt>, but this time, <tt>X</tt> will be more probable than <tt>Y</tt>. This changes our dataset to something like this: </p>
+
+        <table style="text-align:center;">
+            <tr><th><tt>XYA?XXE</tt></th><th><tt>A</tt></th></tr>
+            <tr><th><tt>XXA?XYE</tt></th><th><tt>B</tt></th></tr>
+            <tr><th><tt>Y?BAXYE</tt></th><th><tt>X</tt></th></tr>
+            <tr><th><tt>XXBBX?E</tt></th><th><tt>Y</tt></th></tr>
+            <tr><th><tt>XBB?AYD</tt></th><th><tt>0</tt></th></tr>
+        </table> 
+
+        <p>  When we train an MLM model on this dataset, it’s easy to observe that in the input embedding space, <tt>X</tt> and <tt>Y</tt> become close to each other, just like <tt>A</tt> and <tt>B</tt>. This is because <tt>X</tt> and <tt>Y</tt> are semantically equivalent. However, unlike <tt>A</tt> and <tt>B</tt>, <tt>X</tt> and <tt>Y</tt> do not get close in the output embedding space because they have different conditional probabilities. </p>
+
+        <p>  Now, what happens if we tie the embeddings? We observe that <tt>A</tt> and <tt>B</tt> converge more quickly, while <tt>X</tt> and <tt>Y</tt> remain distanced from each other. Additionally, we noticed that training becomes a bit more unstable—the distance between <tt>X</tt> and <tt>Y</tt> fluctuates significantly during training. Overall, the untied model tends to perform better, likely because it avoids the conflicting requirements imposed by weight tying. </p>
+
+        <h3> Back to the Draft </h3>
+
+        <p> I was quite pleased with the results we obtained, so I eagerly incorporated them into the paper. As I was revising, I also discussed the idea that weight tying should be used only when conditionally equivalent symbols are also semantically equivalent. This can be expressed as: 
+        \[\forall \rho : p(\sigma_1|\rho) = p(\sigma_2|\rho) \iff \forall \rho,y : p(y|\rho,\sigma_1) = p(y|\rho,\sigma_2)\]
+        </p>
+
+        <p> Or, more concisely: 
+            \[\sigma_1 \equiv_{sem} \sigma_2 \iff \sigma_1 \equiv_{cnd} \sigma_2\]
+        </p>
+
+        <p>
+             While discussing this property, I realized that my explanation closely mirrored the hypothesis that "similar words have similar contexts". This concept, which I later discovered is known as the Distributional Hypothesis, made the whole paper click together. I then restructured the work around this central concept. 
+        </p>
+
+        <p> 
+             If we accept the formalization of the Distributional Hypothesis as \(σ_1\) sem.eqv. \(σ_2\) iff. \(σ_1\) cnd.eqv. \(σ_2\), then it follows that weight tying should be employed only when this hypothesis holds true. 
+        </p>
+
+        <h3> Submission & Reviews </h3>
+         
+        <p> With ICML24 being the next major conference on the horizon, we decided to submit our work there. Most of the reviews were helpful and positive, but a recurring critique was the lack of "large-scale" experiments. </p>
+
+        <p>  I simply do not understand this obsession with experiments that require hundreds of GPUs. I mean, I submitted a paper mostly theoretical aiming to explain a very well-known phenomenon supported by a vast literature, isn't a small controlled experiment enough (which is included mostly to make the paper self-contained) when backed by the literature? </p>
+
+        <p>  Well, I am a nobody in the research community, furthermore this is my first publication at a "Big" conference like ICML so I complied (kind of, still one GPU experiment, I do not have access to more than that) although these experiments do not add practically anything. </p>
+
+        <p>  In the end, I was thrilled to have the paper accepted as a spotlight poster. It was a huge milestone for me, making me feel like a genuine researcher in the field. I dedicated almost a month to preparing the poster and video presentation, which can be viewed <a href="https://www.youtube.com/watch?v=F0cPXe-Ob_I">here</a>. The effort was well worth it! </p>
+
+        <h3> Conference & Presentation </h3>
+
+        <p> On the day of the conference, I arrived around 9 A.M. with only an hour of sleep from the flight—naturally, I was too excited to rest properly. I made it to the conference a bit late, and during the first tutorial session, I struggled to stay awake despite the coffee. A little before lunch, I headed back to the hotel to catch a few hours of sleep. In the evening I attended the great tutorial presentation <a href="https://icml.cc/virtual/2024/tutorial/35223">physics of Language Model</a>. </p>
+
+        <p> In the next days, I made a few friends. Talked to a lot of people included <a href="https://atcold.github.io/">Alfredo Canziani</a>, an incredible AI communicator, and <a href="https://randallbalestriero.github.io/">Randall Balestriero</a> an incredible scientist in the field. I saw also <a href="https://www.cs.ox.ac.uk/people/michael.bronstein/">Michael Bronstein</a> but of course, he was always surrounded and I could not bring myself to talk to him. </p>
+
+        <p>  The last poster session was my time to present, and I was quite nervous, as it was my first time presenting at such a conference. To my surprise, many attendees weren’t familiar with the Distributional Hypothesis—a concept I assumed everyone would know, even though I hadn’t known the term myself. This made me question the effectiveness of my paper’s "marketing" (presentation, title, etc.). Perhaps I should have emphasized the "semantics" aspect more. </p>
+
+        <p>  One particularly memorable interaction was with a tall guy from DeepMind. He listened to part of my presentation and then pointed out, in a very polite manner, that my theorems might not be correct. I was confident in the proofs, which had been reviewed by a PhD student in mathematics who had won some math competitions. We debated back and forth until I understood his argument, which involved a specific construction of the embedding matrices. He was right, but his argument broke one of the theorems' assumptions. You have to know that, I was not even showing these hypothesis on the poster because I did not believe that anyone would have been interested in these details. This guy practically had a deeper understanding of my theorems than me without listening to half of the presentation and without the full hypothesis. Well, in conclusion, Deepmind has some freaking guys working there. </p>
+
+        <h3> Conclusions </h3>
+        <ul>
+            <li>Use Weight Tying Only When the Distributional Hypothesis Holds.</li>
+            <li>DeepMind Has Some Incredible People</li>
+            <li>Do not go to the tutorials with 1hr of sleep (3hr are okay though).</li>
+            <li>Writing the Paper is Crucial: While I previously believed that experiments should come first, I now realize the importance of writing down your ideas early. Putting thoughts into words often clarifies and integrates concepts in ways experiments alone may not. This is perhaps the most valuable lesson I’ve learned from this paper. </li>
+        </ul>
+
+        <h3> Limitations & Future works </h3>
+
+        <p>  If you're considering using the weight tying technique, you might wonder: when does the distributional hypothesis actually hold? Does it apply to your specific problem? Does it apply to natural language tasks in general? </p>
+
+        <p>  Answering these questions can be challenging and may not always be feasible. Consequently, this work may have limited practical utility. It simply pushes the question when applying weight tying to when the distributional hypothesis holds. However, I suspect that the distributional hypothesis only partially holds for natural language, which might explain why not all LLMs use weight tying.  </p>
+
+        <p>  So, my idea is that it should be more useful to run the training with weight tying up until a certain point and then untie the embeddings to allow differences between tokens that are conditionally eqv. but not semantically eqv. (or vice versa) to arise. Unfortunately, I lack the GPU resources to train a meaningful LLM to test this hypothesis (I am from a very small lab (not even a Machine Learning lab to be fair)). If anyone is interested in exploring this idea or knows of similar work, I would greatly appreciate hearing about it. </p>
+
+        <p> Finally, if you want more, you can consider reading the paper <span class="cite" value="Bertolotti24"></span>. </p>
+
+        <div class="bibliography"></div>
+        <div id="footer"></div>
+        
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+              "HTML-CSS": {fonts: ['STIX-Web']},
+              SVG: {font: 'STIX-Web'},
+              TeX: {Augment: {
+                Definitions: {
+                  delimiter: {
+                    '\\llbracket': '27E6',
+                    '\\rrbracket': '27E7'
+                  }
+                }
+              }}
+            });
+        </script>
+        <script src="../../scripts/toggle-theme.js"></script>
+        <script src="../../scripts/load-header.js"></script>
+        <script src="../../scripts/load-footer.js"></script>
+        <script src="../../scripts/load-cits.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+
+</script>
+    </body>
+
+</html>

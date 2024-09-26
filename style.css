@@ -8,6 +8,7 @@
     --post-desc-color  : rgb(70  , 70  , 70  );
     --post-foot-color  : rgb(110 , 110 , 110 );
     --post-title-color : rgb(0   , 0   , 0   );
+    --table-back-color : rgb(200 , 200 , 200 );
     --text-font-size   : 16px;
 
     --code-text-color        : rgb(0   , 0   , 0   );
@@ -31,6 +32,7 @@ body.dark-mode {
     --post-desc-color  : rgb(200 , 200 , 200 );
     --post-foot-color  : rgb(150 , 150 , 150 );
     --post-title-color : rgb(255 , 255 , 255 );
+    --table-back-color : rgb(70  , 70  , 70  );
     --text-font-size   : 16px;
 
     --code-text-color        : rgb(255 , 255 , 255 );
@@ -139,4 +141,20 @@ ol {
 
 a {
     color:inherit;
+}
+
+table {
+    font-family:-apple-system,BlinkMacSystemFont,segoe ui,Roboto,Oxygen,Ubuntu,Cantarell,open sans,helvetica neue,sans-serif;
+    color: var(--text-color);
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: var(--table-back-color);
 }

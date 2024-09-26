@@ -88,11 +88,11 @@ const bibliography = {
     },
 
     "Sennrich17" : {
-        "title"     : "How Grammatical is Character-level Neural Machine Translation? Assessing MT Quality with Contrastive Translation Pairs",
-        "author"    : "Sennrich, Rico",
-        "booktitle" : "Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics: Volume 2, Short Papers",
-        "pages"     : "376--382",
-        "year"      : "2017"
+        "title"   : "How Grammatical is Character-level Neural Machine Translation? Assessing MT Quality with Contrastive Translation Pairs",
+        "author"  : "Sennrich, Rico",
+        "journal" : "Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics: Volume 2, Short Papers",
+        "pages"   : "376--382",
+        "year"    : "2017"
     },
 
     "Kudo18" : {
@@ -107,8 +107,21 @@ const bibliography = {
         "author"  : "Elhage, Nelson and Hume, Tristan and Olsson, Catherine and Schiefer, Nicholas and Henighan, Tom and Kravec, Shauna and Hatfield-Dodds, Zac and Lasenby, Robert and Drain, Dawn and Chen, Carol and others",
         "journal" : "arXiv preprint arXiv:2209.10652",
         "year"    : "2022"
+    },
+
+    "Press16" : {
+        "title"   : "Using the Output Embedding to Improve Language Models",
+        "author"  : "Ofir Press and Lior Wolf",
+        "journal" : "Conference of the European Chapter of the Association for Computational Linguistics",
+        "year"    : "2016",
+        "url"     : "https://api.semanticscholar.org/CorpusID:836219",
+    },
+
+    "Bertolotti24" : {
+        "title"   : "By Tying Embeddings You Are Assuming the Distributional Hypothesis",
+        "author"  : "Francesco Bertolotti and Walter Cazzola",
+        "journal" : "International Conference on Machine Learning",
+        "year"    : "2024",
+        "url"     : "https://api.semanticscholar.org/CorpusID:272330175"
     }
-
-
-
 }
