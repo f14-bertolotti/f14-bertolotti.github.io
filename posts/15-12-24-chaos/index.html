@@ -1,123 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rössler Attractor - p5.js</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-  <style>
-    body { margin: 0; }
-    canvas { display: block; }
-  </style>
-</head>
-<body>
-  <script>
-    // Rössler Attractor Parameters
-    let a = 0.2;
-    let b = 0.2;
-    let c = 3.2;
-    let dt = 0.035;
 
-    let aliveTrajectories = new Array(40).fill([]).map(() => [{
-        x : Math.random() * 2 - 1, 
-        y : 0, 
-        z : 0
-    }]);
-    let aliveOpacities = new Array(40).fill(1);
-    let dyingTrajectories = [];
-    let dyingOpacities = [];
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../../style.css">
+        <link rel="stylesheet" href="../../post.css">
+        <link rel="stylesheet" href="../../code.css">
 
-    function project3DPointTo2D(x, y, z) {
-        let scale = 20;
-        return {
-            x: +x * scale / (scale + y), 
-            y: -z * scale / (scale + y)
-        };
-    }
+        <title>Disarray</title>
 
-    function rotateX3DPoint(x, y, z, angle) {
-        const cos = Math.cos(angle);
-        const sin = Math.sin(angle);
+    </head>
+    
+    <body>
 
-        return {
-            x: x,
-            y: y * cos - z * sin,
-            z: y * sin + z * cos
-        };
-    }
+        <div id="root-folder" value="../../"></div>
 
-    function updateTrajectories(trajectories) {
-        trajectories = trajectories.map((traj) => {
-            let xyz = traj[traj.length - 1];
-            let x = xyz.x + (-xyz.y - xyz.z) * dt;
-            let y = xyz.y + (xyz.x + a * xyz.y) * dt;
-            let z = xyz.z + (b + xyz.z * (xyz.x - c)) * dt;
-            if (traj.length > 100) {
-                traj.shift();
-            }
-            return traj.concat({ x, y, z });
-        });
-        return trajectories;
-    }
+        <div id="header"></div>
 
-    function drawTrajectories(trajectories, opacities) {
-        trajectories.forEach((trajectory,i) => {
-            beginShape();
-            stroke(255, 255, 255, int(opacities[i]*255));
-            trajectory.forEach((xyz, j) => {
-                xyz = rotateX3DPoint(xyz.x, xyz.y, xyz.z, 30 * Math.PI / 180);
-                xy = project3DPointTo2D(xyz.x, xyz.y, xyz.z);
-                x = map(xy.x, -30, 30, 0, width)
-                y = map(xy.y, -30, 30, 0, height)
-                vertex(x, y);
-            })
-            endShape();
-        })
-    }
+        <div class="post-body">
+            <h1> An Introduction to Chaos Theory </h1>
+            <div id="canvas-container"></div>
 
-    function setup() {
-        createCanvas(windowWidth, windowHeight);
-        stroke(255);
-        background(0);
-        noFill();
-    }
+            <p>
+                These days, I am studying a little bit of Chaos Theory on <span class="cite" value="Alligood98"></span> (A great introductory book on the subject by the way). I am going to share some of the things I learned here. However, note that I am no expert on the subject, so take everything with a grain of salt. Furthermore, I am still in the process of learning, so I might make mistakes. If you find any, please let me know. 
+            </p>
 
-    function draw() {
-        background(0,0,0,10);
+            <h2> Dynamical Systems </h3>
+                
+            <p>
+                The theory of chaos is mostly concerned with the study of dynamical systems. A dynamical system can be described with the triplet \((T,X,f)\). Where \(T\) is a monoid, it represents the time. \(X\) is a set, also known as state space. It represents every possible state in which the dynamical system could be found. Finally, \(f:T \times X \rightarrow X\) is a function that describes how the system evolves over time.
+            </p>
 
-        dyingOpacities = dyingOpacities.map((opacity) => max(0,opacity - .001));
+            <p>
+                Do not get scare by the word <b>monoid</b>. It is just a set with an associative binary operation and an identity element. To us, it simply means that: 1) we can do \(t_1 + t_2\) and there is an a neutral element \(0\) such that \(t + 0 = t\)
+            </p>
 
-        // remove dead trajectories
-        dyingTrajectories = dyingTrajectories.filter((traj, i) => dyingOpacities[i] > 0);
-        dyingOpacities = dyingOpacities.filter((opacity) => opacity > 0);
-        
-        // reset a random trajectory
-        if (Math.random() < 0.02) {
-            // select random trajectory
-            let trajectoryIndex = Math.floor(Math.random() * aliveTrajectories.length);
-            // move the trajectory to the dyingTrajectories
-            dyingTrajectories.push(aliveTrajectories[trajectoryIndex]);
-            dyingOpacities.push(1);
-            // reset trajectory
-            aliveTrajectories[trajectoryIndex] = [{
+            <p>
+                We have only a few requirements of \(f\). First, \(f(0,x) = x\) for all \(x \in X\). This means that the system does not change when time does not change. Secondly, \(f(t_1, f(t_2, x)) = f(t_1 + t_2, x)\) for all \(t_1, t_2 \in T\) and \(x \in X\). This means that the system evolves in a continuous way.
+            </p>
+
+            <h3> Example: TODO </h3>
+
+        </div>
+
+        <div class="bibliography"></div>
+        <div id="footer"></div>
+ 
+        <script>
+            // Rössler Attractor Parameters
+            let a = 0.2;
+            let b = 0.2;
+            let c = 3.2;
+            let dt = 0.035;
+            
+            let aliveTrajectories = new Array(10).fill([]).map(() => [{
                 x : Math.random() * 2 - 1, 
-                y : Math.random() * 2 - 1, 
-                z : Math.random() * 2 - 1
-            }];
-        }
+                y : 0, 
+                z : 0
+            }]);
+            
+            let aliveOpacities = new Array(10).fill(.5);
+            let dyingTrajectories = [];
+            let dyingOpacities = [];
+            
+            function project3DPointTo2D(x, y, z) {
+                let scale = 20;
+                return {
+                    x: (+x * scale / (scale + y)), 
+                    y: (-z * scale / (scale + y))
+                };
+            }
+            
+            function rotateX3DPoint(x, y, z, angle) {
+                const cos = Math.cos(angle);
+                const sin = Math.sin(angle);
+            
+                return {
+                    x: x,
+                    y: y * cos - z * sin,
+                    z: y * sin + z * cos
+                };
+            }
+            
+            function updateTrajectories(trajectories) {
+                trajectories = trajectories.map((traj) => {
+                    let xyz = traj[traj.length - 1];
+                    let x = xyz.x + (-xyz.y - xyz.z) * dt;
+                    let y = xyz.y + (xyz.x + a * xyz.y) * dt;
+                    let z = xyz.z + (b + xyz.z * (xyz.x - c)) * dt;
+                    if (traj.length > 100) {
+                        traj.shift();
+                    }
+                    return traj.concat({ x, y, z });
+                });
+                return trajectories;
+            }
+            
+            function drawTrajectories(trajectories, opacities) {
 
-        // update the system
-        aliveTrajectories = updateTrajectories(aliveTrajectories);
-        dyingTrajectories = updateTrajectories(dyingTrajectories);
+                // get style color
+                if (document.getElementById("theme-icon").src.endsWith("icons/moon.svg")) {
+                    col = [0,0,0];
+                } else if (document.getElementById("theme-icon").src.endsWith("icons/sun.svg")) {
+                    col = [255,255,255];
+                }
 
-        // draw the aliveTrajectories
-        drawTrajectories(aliveTrajectories, aliveOpacities);
-        drawTrajectories(dyingTrajectories, dyingOpacities);
+                trajectories.forEach((trajectory,i) => {
+                    beginShape();
+                    stroke(col[0], col[1], col[2], int(opacities[i]*255));
+                    trajectory.forEach((xyz, j) => {
+                        xyz = rotateX3DPoint(xyz.x, xyz.y, xyz.z, 30 * Math.PI / 180);
+                        xy = project3DPointTo2D(xyz.x, xyz.y, xyz.z);
+                        x = map(xy.x*2-1, -30, 30, 0, width)
+                        y = map(xy.y*2.5+15, -30, 30, 0, height)
+                        vertex(x, y);
+                    })
+                    endShape();
+                })
+            }
+            
+            function setup() {
+                let canvas = createCanvas(700, 200);
+               canvas.parent('canvas-container');
+                stroke(255);
+                noFill();
+            }
+            
+            function draw() {
+                clear();
+            
+                dyingOpacities = dyingOpacities.map((opacity) => max(0,opacity - .001));
+            
+                // remove dead trajectories
+                dyingTrajectories = dyingTrajectories.filter((traj, i) => dyingOpacities[i] > 0);
+                dyingOpacities = dyingOpacities.filter((opacity) => opacity > 0);
+                
+                // reset a random trajectory
+                if (Math.random() < 0.02) {
+                    // select random trajectory
+                    let trajectoryIndex = Math.floor(Math.random() * aliveTrajectories.length);
+                    // move the trajectory to the dyingTrajectories
+                    dyingTrajectories.push(aliveTrajectories[trajectoryIndex]);
+                    dyingOpacities.push(1);
+                    // reset trajectory
+                    aliveTrajectories[trajectoryIndex] = [{
+                        x : Math.random() * 2 - 1, 
+                        y : Math.random() * 2 - 1, 
+                        z : Math.random() * 2 - 1
+                    }];
+                }
+            
+                // update the system
+                aliveTrajectories = updateTrajectories(aliveTrajectories);
+                dyingTrajectories = updateTrajectories(dyingTrajectories);
+            
+                // draw the aliveTrajectories
+                drawTrajectories(aliveTrajectories, aliveOpacities);
+                drawTrajectories(dyingTrajectories, dyingOpacities);
+            
+            }
 
-    }
+        </script>
 
+        <script src="../../scripts/toggle-theme.js"></script>
+        <script src="../../scripts/load-header.js"></script>
+        <script src="../../scripts/load-footer.js"></script>
+        <script src="../../scripts/load-cits.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
 
-  </script>
-</body>
+    </body>
+
 </html>
-

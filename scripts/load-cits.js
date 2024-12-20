@@ -123,5 +123,13 @@ const bibliography = {
         "journal" : "International Conference on Machine Learning",
         "year"    : "2024",
         "url"     : "https://api.semanticscholar.org/CorpusID:272330175"
+    },
+
+    "Alligood98" : {
+        "title"   : "Chaos: an introduction to dynamical systems",
+        "author"  : "Alligood, Kathleen T and Sauer, Tim D and Yorke, James A and Chillingworth, David",
+        "journal" : "SIAM Review",
+        "year"    : "1998",
     }
+
 }
