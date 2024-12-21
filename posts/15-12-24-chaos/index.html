@@ -20,7 +20,7 @@
 
         <div class="post-body">
             <h1> An Introduction to Chaos Theory </h1>
-            <div id="canvas-container"></div>
+            <div id="canvas-container-0"></div>
 
             <p>
                 These days, I am studying a little bit of Chaos Theory on <span class="cite" value="Alligood98"></span> (A great introductory book on the subject by the way). I am going to share some of the things I learned here. However, note that I am no expert on the subject, so take everything with a grain of salt. Furthermore, I am still in the process of learning, so I might make mistakes. If you find any, please let me know. 
@@ -40,7 +40,29 @@
                 We have only a few requirements of \(f\). First, \(f(0,x) = x\) for all \(x \in X\). This means that the system does not change when time does not change. Secondly, \(f(t_1, f(t_2, x)) = f(t_1 + t_2, x)\) for all \(t_1, t_2 \in T\) and \(x \in X\). This means that the system evolves in a continuous way.
             </p>
 
-            <h3> Example: TODO </h3>
+            <h3> Example </h3>
+
+            <p>
+                Let us consider a first example of a discrete-time 1-dimensional dynamical system. The time monoid is simply \((\mathbb{N},+)\). The state space is simply the real line \(\mathbb{R}\). Meanwhile, the function \(f\) is induced by the update rule:
+                \[
+                    f(x,t) = x + t
+                \]
+            </p>
+                
+            <p>
+                Note that, \(f(x,0)=x \) and \(f(f(x,t_1),t_2) = f(x+t_1, t_2) = x+t_1+t_2 f(x,t_1+t_2)\). This means that our system is a proper dynamical system. It is fairly easy transpose this discrete system to a continuous one.
+            </p>
+
+            <h3> Fixed Points </h3>
+            
+            <p>
+                Among all the points in the state space, there are some that are definitely special. These are the fixed points. A fixed point is a point \(x \in X\) such that \(f(t,x) = x\) for all \(t \in T\). In other words, a fixed point is a point that does not change over time.
+            </p>
+
+            <p>
+                Among the fixed points, the <b>Lyapunov Stable fixed points</b> are points that, when the system is close to them, it will converge to them. Formally, a fixed point \(x \in X\) is stable if and only if for every \(\epsilon > 0\), there exists a \(\delta > 0\) such that if \(d(x,y) < \delta\), then \(d(f(t,y),x) < \epsilon\) for all \(t \in T\). Here, \(d\) is a distance in the state space.
+            </p>
+
 
         </div>
 
@@ -122,7 +144,7 @@
             
             function setup() {
                 let canvas = createCanvas(700, 200);
-               canvas.parent('canvas-container');
+               canvas.parent('canvas-container-0');
                 stroke(255);
                 noFill();
             }
