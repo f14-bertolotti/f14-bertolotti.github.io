@@ -123,6 +123,11 @@ h3 {
     color: var(--text-color);
 }
 
+h4 {
+    font-size: 16px;
+    color: var(--text-color);
+}
+
 p {
     color: var(--text-color);
     text-align: justify;

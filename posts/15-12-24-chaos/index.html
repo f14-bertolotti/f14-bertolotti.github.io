@@ -20,171 +20,151 @@
 
         <div class="post-body">
             <h1> An Introduction to Chaos Theory </h1>
-            <div id="canvas-container-0"></div>
+            <div id="canvas-container-rossler" xscale=3 yscale=2 xshift=-5 yshift=+15 width=700 height=300></div>
 
             <p>
                 These days, I am studying a little bit of Chaos Theory on <span class="cite" value="Alligood98"></span> (A great introductory book on the subject by the way). I am going to share some of the things I learned here. However, note that I am no expert on the subject, so take everything with a grain of salt. Furthermore, I am still in the process of learning, so I might make mistakes. If you find any, please let me know. 
             </p>
 
-            <h2> Dynamical Systems </h3>
+            <h3> Preliminaries </h3>
                 
             <p>
-                The theory of chaos is mostly concerned with the study of dynamical systems. A dynamical system can be described with the triplet \((T,X,f)\). Where \(T\) is a monoid, it represents the time. \(X\) is a set, also known as state space. It represents every possible state in which the dynamical system could be found. Finally, \(f:T \times X \rightarrow X\) is a function that describes how the system evolves over time.
+                The theory of chaos is mostly concerned with the study of dynamical systems. Therefore, the first step is to define what a dynamical system really is. Unfortunately, if we want a general definition that will work even outside the classical euclidean space this will require a little bit of work. To properly define a dynamical system we need a few geometrical concepts beforehand. We will start with very basic concepts so you will need to bear with me. Let us start with the concept of topological space.
             </p>
 
             <p>
-                Do not get scare by the word <b>monoid</b>. It is just a set with an associative binary operation and an identity element. To us, it simply means that: 1) we can do \(t_1 + t_2\) and there is an a neutral element \(0\) such that \(t + 0 = t\)
+                <b>Definition (Topological Space) </b> A topological space is a pair \((X,\mathcal{T})\) where \(X\) is a set and \(\mathcal{T} \subseteq 2^X\) such that: 
+                <ul>
+                    <li>1) \(X\) and \(\emptyset\) are in \(\mathcal{T}\),</li>
+                    <li>2) the intersection of any two sets in \(\mathcal{T}\) is in \(\mathcal{T}\), and</li>
+                    <li>3) the union of any collection (finite of infinite) of sets in \(\mathcal{T}\) is in \(\mathcal{T}\).</li>
+                </ul>
+            </p>
+            <p>The elements of \(\mathcal{T}\) are called <b>open</b> sets.</p>
+
+            <p>
+                You may have noticed an asymmetry in the definition of topological space. We allow for infinite (countable or uncountable) unions but only finite intersections. This came come of as a little weird. However, you need to consider that a topological space wants to be a kind of a generalization of real analysis. And, in real analysis, open sets are not closed under infinite intersections. However, open sets are closed under infinite unions.
             </p>
 
             <p>
-                We have only a few requirements of \(f\). First, \(f(0,x) = x\) for all \(x \in X\). This means that the system does not change when time does not change. Secondly, \(f(t_1, f(t_2, x)) = f(t_1 + t_2, x)\) for all \(t_1, t_2 \in T\) and \(x \in X\). This means that the system evolves in a continuous way.
+            <b> Definition (Continuos Function) </b> Let \(T_1,T_2\) be topological spaces. A function \(f:T_1 \rightarrow T_2\) is continuous if and only if for every open set \(U \in T_2\), the preimage \(f^{-1}(U)\) is an open set in \(T_1\). 
             </p>
 
-            <h3> Example </h3>
+            <p>
+            To get an intuition of this definition, it is best if we see it as a generalization of continutity in real analysis. Recall the \(\epsilon\)-\(\delta\) definition of continuity (see <a href=https://proofwiki.org/wiki/Metric_Space_Continuity_by_Epsilon-Delta>here</a>). There, we used open balls to define continuity. We said, a function is continuos if every open ball in the codomain gets mapped to an open ball in the domain. Here, we use open sets instead of open balls since we do not have a metric do define open balls.
+            </p>
+
+            <p> <b> Definition (Homeomorphism) </b> A function \(f:T_1 \rightarrow T_2\) is a homeomorphism if it is bijective and both \(f\) and \(f^{-1}\) are continuous. </p>
 
             <p>
-                Let us consider a first example of a discrete-time 1-dimensional dynamical system. The time monoid is simply \((\mathbb{N},+)\). The state space is simply the real line \(\mathbb{R}\). Meanwhile, the function \(f\) is induced by the update rule:
+            An homeomorphism is our way of saying that two topological spaces are practically the same. Each element in one space has a corresponding element in the other space. Furthermore, the structure of the spaces (the open sets) is preserved.
+            </p>
+
+            <p> 
+            <b> Definition (Locally Euclidean) </b> A topological space \(T\) is locally Euclidean if for each point \(x \in T\) there is an open set \(U\) containing \(x\) such that \(U\) is homeomorphic to an open subset of \(\mathbb{R}^n\). 
+            </p>
+
+            <p>
+                A locally euclidean topological space is simply a topological space for which every point has a open set that looks like an euclidean space.
+            </p>
+
+            <p>
+            <b> Definition (Hausdorff Space) </b> A topological space \(T\) is a Hausdorff space if for every pair of distinct points \(x,y \in T\), there are disjoint open sets \(U,V\) such that \(x \in U\) and \(y \in V\).
+            </p>
+
+            <p>
+            The intuition behind the Hausdorff property is that it allows us to distinguish any two points when looked through the lens of open sets.
+            </p>
+
+            <p>
+            <b> Definition (Basis) </b> A basis for a topological space \(T\) is a collection \(\mathcal{B}\) of open sets such that every open set in \(T\) can be written as a union of sets in \(\mathcal{B}\).
+            </p>
+
+            <p>
+            You can think of a basis of a topology as a collection that generates the topology by means of union. In particular, we say that a basis is a <b>countable basis</b> if it is, unsurprisingly, countable. Further, if a topology has a countable basis, we say that it is a <b>second-countable space</b>. Why second? Because there is a notion of first-countable. But we will not go into that.
+            </p>
+
+            <p>
+            <b> Definition (Topological Manifold) </b> A manifold \(\mathcal{M}\) is a topological space \((X,\mathcal{T})\) that is Hausdorff, second-countable, and locally Euclidean. 
+            </p>
+
+            <p>
+            As you can see, manifolds are object that reflect many properties of euclidean spaces. For example, looking through open sets, we can always distinguish any two points. We do also have a countable basis of open sets. And, locally, we can map the manifold to an euclidean space.
+            </p>
+
+            <p>
+            More intuitively, you can think of a manifold as an object embedded in an euclidean space. For example, image a circle of radius 1 on the euclidean plane. You are looking at 1-dimensional manifold. Why 1-dimensional? Because you can describe all the point in the circle with a single parameter, the angle. Or, think of an hollow sphere. You are looking at a 2-dimensional manifold. Why 2-dimensional? Because you can describe all the points in the sphere with two parameters, the latitude and longitude. This means that you can map the circle to a line and the sphere to a plane.
+            </p>
+
+            <p>
+            <b> Definition (Monoid) </b> We need only another small thing before introducing the concept of dynamical system. A monoid is a set \(X\) with an associative binary operation and an identity element. 
+            </p>
+
+            <p>
+            For us, this is simply a set with the addition operation. For example, this could be \((\mathbb{Z},+)\) or \((\mathbb{R},+)\).
+            </p>
+
+            <h3> Dynamical System </h3>
+
+            <p> 
+            Now that we have done all this work, I want to confess that it was not really necessary. You can obtain the same results with a much simpler definition. However, we would lose the generality that the following definition provides. Ultimately, we won't need all this structure. But it was an excuse to refresh some concept from topology.
+            </p>
+
+            <p> <b> Definition (Dynamical System) </b> A dynamical system is a triplet \((T,\mathcal{M},f)\) where \(T\) is a monoid, \(\mathcal{M}\) is a manifold, and \(f:T \times \mathcal{M} \rightarrow \mathcal{M}\) is a function such that 1) \(\forall x \in \mathcal{M} : f(x,0)=x\), and 2) \(\forall x \in \mathcal{M} : f(f(x,t_1),t_2) = f(x,t_1+t_2)\).
+            </p>
+
+            <p>
+            Intuitively, \(T\) represents time. And, if time does not progress, the system does not either, so we have the requirement \(f(x,0)=x\) on the evolution function \(f\). Furthermore, the system evolves in a continuous way, so we have the requirement \(f(f(x,t_1),t_2) = f(x,t_1+t_2)\). This means that it does not matter if we evolve the system in one big step (\(t_1 + t_2\)) or in two small steps (\(t_1\) and \(t_2\)). Finally, we \(\mathcal{M}\) represents the state space, the points where the system can be.
+            </p>
+
+            <h4> Example 1 </h4>
+            <p>
+                Let us consider a first example of a continuous-time 1-dimensional dynamical system. The time monoid is simply \((\mathbb{R},+)\). The state space is simply the real line \(\mathbb{R}\). Meanwhile, the function \(f\) is induced by the update rule:
                 \[
                     f(x,t) = x + t
                 \]
             </p>
                 
             <p>
-                Note that, \(f(x,0)=x \) and \(f(f(x,t_1),t_2) = f(x+t_1, t_2) = x+t_1+t_2 f(x,t_1+t_2)\). This means that our system is a proper dynamical system. It is fairly easy transpose this discrete system to a continuous one.
+            Note that, \(f(x,0)=x \) and \(f(f(x,t_1),t_2) = f(x+t_1, t_2) = x+t_1+t_2 f(x,t_1+t_2)\). This means that our update function is properly defined. Next, we know that the real line is a manifold (it is locally euclidean, second-countable, and Hausdorff). Also, \((\mathbb{R},+)\) is evidently a monoid. Therefore, we have a dynamical system.
             </p>
 
-            <h3> Fixed Points </h3>
-            
+            <h4> Example 2 </h4>
             <p>
-                Among all the points in the state space, there are some that are definitely special. These are the fixed points. A fixed point is a point \(x \in X\) such that \(f(t,x) = x\) for all \(t \in T\). In other words, a fixed point is a point that does not change over time.
+            Let us see a second example. Consider the manifold \(\mathbb{S}^1=\{(x,y)\in\mathbb{R}^2|x^2+y^2=1\}\) (the unit circle) and the monoid \((\mathbb{R},+)\). The update function is given by: 
+            \[
+            f((x,y),t) = \begin{bmatrix} \cos(t\theta) & -\sin(t\theta) \\ \sin(t\theta) & \cos(t\theta) \end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix}
+            \]
             </p>
 
             <p>
-                Among the fixed points, the <b>Lyapunov Stable fixed points</b> are points that, when the system is close to them, it will converge to them. Formally, a fixed point \(x \in X\) is stable if and only if for every \(\epsilon > 0\), there exists a \(\delta > 0\) such that if \(d(x,y) < \delta\), then \(d(f(t,y),x) < \epsilon\) for all \(t \in T\). Here, \(d\) is a distance in the state space.
+            Here, \(\theta\) is a fixed angle of choice. Note that, \(f((x,y),0) = (x,y)\). We also that that:
+            \[
+            \small{\begin{aligned}
+
+            f(f((x,y),t_1),t_2) &= \begin{bmatrix} \cos(t_1\theta) & -\sin(t_1\theta) \\ \sin(t_1\theta) & \cos(t_1\theta) \end{bmatrix} \begin{bmatrix} \cos(t_2\theta) & -\sin(t_2\theta) \\ \sin(t_2\theta) & \cos(t_2\theta) \end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix} \\
+                                &= \begin{bmatrix} \cos(t_1\theta)\cos(t_2\theta) - \sin(t_1\theta)\sin(t_2\theta) & -\cos(t_1\theta)\sin(t_2\theta) - \sin(t_1\theta)\cos(t_2\theta) \\ \sin(t_1\theta)\cos(t_2\theta) + \cos(t_1\theta)\sin(t_2\theta) & - \sin(t_1\theta)\sin(t_2\theta) + \cos(t_1\theta)\cos(t_2\theta) \end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix} \\
+                                &= \begin{bmatrix} \cos((t_1+t_2)\theta) & -\sin((t_1+t_2)\theta) \\ \sin((t_1+t_2)\theta) & \cos((t_1+t_2)\theta)\end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix} = f((x,y),t_1+t_2)
+            \end{aligned}}
+            \]
+
+            So, the evolution function is proper. We also know that our choice of time is proper. We need only to show that the unit circle is a manifold. But you will have to trust me on this one.
             </p>
 
+            <p>
+            Now that you arrived to this point, you deserve an animation of this simple dynamical system
+            </p>
+
+            <div id="canvas-container-circle" xscale=3 yscale=2 xshift=-5 yshift=+15 width=700 height=300></div>
+           
 
         </div>
 
         <div class="bibliography"></div>
         <div id="footer"></div>
  
-        <script>
-            // Rössler Attractor Parameters
-            let a = 0.2;
-            let b = 0.2;
-            let c = 3.2;
-            let dt = 0.035;
-            
-            let aliveTrajectories = new Array(10).fill([]).map(() => [{
-                x : Math.random() * 2 - 1, 
-                y : 0, 
-                z : 0
-            }]);
-            
-            let aliveOpacities = new Array(10).fill(.5);
-            let dyingTrajectories = [];
-            let dyingOpacities = [];
-            
-            function project3DPointTo2D(x, y, z) {
-                let scale = 20;
-                return {
-                    x: (+x * scale / (scale + y)), 
-                    y: (-z * scale / (scale + y))
-                };
-            }
-            
-            function rotateX3DPoint(x, y, z, angle) {
-                const cos = Math.cos(angle);
-                const sin = Math.sin(angle);
-            
-                return {
-                    x: x,
-                    y: y * cos - z * sin,
-                    z: y * sin + z * cos
-                };
-            }
-            
-            function updateTrajectories(trajectories) {
-                trajectories = trajectories.map((traj) => {
-                    let xyz = traj[traj.length - 1];
-                    let x = xyz.x + (-xyz.y - xyz.z) * dt;
-                    let y = xyz.y + (xyz.x + a * xyz.y) * dt;
-                    let z = xyz.z + (b + xyz.z * (xyz.x - c)) * dt;
-                    if (traj.length > 100) {
-                        traj.shift();
-                    }
-                    return traj.concat({ x, y, z });
-                });
-                return trajectories;
-            }
-            
-            function drawTrajectories(trajectories, opacities) {
-
-                // get style color
-                if (document.getElementById("theme-icon").src.endsWith("icons/moon.svg")) {
-                    col = [0,0,0];
-                } else if (document.getElementById("theme-icon").src.endsWith("icons/sun.svg")) {
-                    col = [255,255,255];
-                }
-
-                trajectories.forEach((trajectory,i) => {
-                    beginShape();
-                    stroke(col[0], col[1], col[2], int(opacities[i]*255));
-                    trajectory.forEach((xyz, j) => {
-                        xyz = rotateX3DPoint(xyz.x, xyz.y, xyz.z, 30 * Math.PI / 180);
-                        xy = project3DPointTo2D(xyz.x, xyz.y, xyz.z);
-                        x = map(xy.x*2-1, -30, 30, 0, width)
-                        y = map(xy.y*2.5+15, -30, 30, 0, height)
-                        vertex(x, y);
-                    })
-                    endShape();
-                })
-            }
-            
-            function setup() {
-                let canvas = createCanvas(700, 200);
-               canvas.parent('canvas-container-0');
-                stroke(255);
-                noFill();
-            }
-            
-            function draw() {
-                clear();
-            
-                dyingOpacities = dyingOpacities.map((opacity) => max(0,opacity - .001));
-            
-                // remove dead trajectories
-                dyingTrajectories = dyingTrajectories.filter((traj, i) => dyingOpacities[i] > 0);
-                dyingOpacities = dyingOpacities.filter((opacity) => opacity > 0);
-                
-                // reset a random trajectory
-                if (Math.random() < 0.02) {
-                    // select random trajectory
-                    let trajectoryIndex = Math.floor(Math.random() * aliveTrajectories.length);
-                    // move the trajectory to the dyingTrajectories
-                    dyingTrajectories.push(aliveTrajectories[trajectoryIndex]);
-                    dyingOpacities.push(1);
-                    // reset trajectory
-                    aliveTrajectories[trajectoryIndex] = [{
-                        x : Math.random() * 2 - 1, 
-                        y : Math.random() * 2 - 1, 
-                        z : Math.random() * 2 - 1
-                    }];
-                }
-            
-                // update the system
-                aliveTrajectories = updateTrajectories(aliveTrajectories);
-                dyingTrajectories = updateTrajectories(dyingTrajectories);
-            
-                // draw the aliveTrajectories
-                drawTrajectories(aliveTrajectories, aliveOpacities);
-                drawTrajectories(dyingTrajectories, dyingOpacities);
-            
-            }
-
-        </script>
-
+        <script src=rossler.js></script>
+        <script src=circle.js></script>
         <script src="../../scripts/toggle-theme.js"></script>
         <script src="../../scripts/load-header.js"></script>
         <script src="../../scripts/load-footer.js"></script>
