@@ -256,8 +256,67 @@
             <canvas id="source" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
 
             <p>
-            Now, that we know what a sink and a source are, we concern ourselves on how these points can be classified. In other words, we want a reliable method to determine if a fixed point is a sink or a source. As it turns out, there is a very simple way to do this. We can look at the derivative of the system at the fixed point.
+            Now, that we know what a sink and a source are, we concern ourselves on how these points can be classified. In other words, we want a reliable method to determine if a fixed point is a sink or a source. As it turns out, there is a very simple way to do this. We can look at the derivative of the system at the fixed point. But wait a minute, we never said that our manifold are differentiable. So, we will take a break from the dynamical system stuff to talk a little bit about differntiable manifolds.
             </p>
+
+            <h3> Differentiable Manifolds </h3>
+
+            <p>
+            <b> Definition (Chart) </b> Let \(\mathcal{M}\) be a manifold. A chart on \(\mathcal{M}\) is a pair \((U,\phi)\) where \(U\) is an open set in \(\mathcal{M}\) and \(\phi:U \rightarrow \phi(U) \subseteq \mathbb{R}^n\) is a homeomorphism (bijective and both \(f\) and \(f^-1\) are continuos) with \(\phi(U)\) also open.
+            </p>
+
+            <p>
+            Having a chart on a manifold is like having a map between a patch of the manifold (the open set \(U\)) and to a patch of the euclidean space (the open set \(\phi(U)\)). Further, we require this transition to be smooth in both directions (from the manifold to the euclidean space and vice-versa). 
+            </p>
+
+            <p>
+            <b> Definition (Overlapping Charts) </b> Two charts \((U_i,\phi_i)\) and \((U_j,\phi_j)\) are said to overlap if \(U_i \cap U_j \neq \emptyset\).
+            </p>
+
+            <p>
+            Nothing to be said here. Just that we need to define this concept to define the next one.
+            </p>
+
+            <p>
+            <b> Definition (Smooth) </b> A function \(f:\mathbb{R}^n \rightarrow \mathbb{R}^m\) is smooth if all the partial derivatives of all orders exist and are continuous.
+            </p>
+
+            <p>
+            Smooth functions are those function that are differentiable as many times as you want. Often you will find this class of function under the symbol \(C^\infty\). 
+            </p>
+
+            <p>
+            <b> Definition (Atlas) </b> An atlas on a manifold \(\mathcal{M}=(X,T)\) is a collection of charts \(\{(U_i,\phi_i)\}_{i \in I}\) such that: 1) \(X \subseteq \cup_{i\in I} U_i \) (that is the open set cover the manifold). 2) For any pair of overlapping charts  \((U_i,\phi_i)\) and \((U_j,\phi_j)\) in the atlas, the transition function \(\phi_j \circ \phi_i^{-1}: \phi_i(U_i \cap U_j) \rightarrow \phi_j(U_i \cap U_j)\) is smooth (that is the charts are compatible).
+            </p>
+
+            <p>
+            First of all, we are saying that an atlas is a manifold if it covers the whole manifold, nothing surprising. However, we also require a certain property on overlapping charts. We require that the transition between the euclidean patch, image of \(\phi_i\), and the euclidean patch, image of \(\phi_j\), is smooth (and vice-versa). This is what will derive the notion of differentiability on the manifold.
+            </p>
+
+            <p>
+            <b> Definition (Differentiable Manifold) </b> A manifold \(\mathcal{M}=(X,T)\) is a differentiable manifold if it has an a smooth atlas.
+            </p>
+
+            <p>
+            Ok, but how do we define the notion of derivative given a differentiable manifold? Let us first define the notion of differentiability at a point.
+            </p>
+
+            <p>
+            <b> Definition (Differentiable at a Point) </b> Let \(\mathcal{M}=(X_0,T_0)\) and \(\mathcal{N}=(X_1,T_1)\) be a differentiable manifolds. Let \(f:\mathcal{M} \rightarrow \mathcal{N}\) be a function. We say that \(f\) is differentiable at a point \(x \in X_0\) if there is a chart \((U,\phi)\) around \(x\) and a chart \((V,\psi)\) around \(f(x)\) such that the function \(\psi \circ f \circ \phi^{-1}:\phi(U) \rightarrow \psi(V)\) is smooth.
+            </p>
+
+            <p>
+            So a function \(f\) is differentiable if starting from the euclidean patch, going to the input manifold \(\mathcal{M}\), to the output manifold \(\mathcal{N}\), and back to an euclidean patch we have a smooth transition (This is exactly the map \(\psi \circ f \circ \phi^{-1}\)). From this definition, you can already see that the notion of differentiation relies all on the charts. 
+            </p>
+
+            <p>
+            Before addressing the derivative, we need to address the space in which the derivative lives on. In the euclidean space, when we have a function \(f:\mathbb{R} \rightarrow \mathbb{R}\), the space of the derivatives is \(\mathbb{R}\). When we have a function \(f:\mathbb{R}^n \rightarrow \mathbb{R}^m\), the space of the derivatives is \(\mathbb{R}^{n \times m}\) (given by the jacobian matrix). In a manifold, this space will be called the tangent space.
+            </p>
+
+            <p>
+            <b> Definition (Tangent Space) </b>
+            </p>
+
 
             <h1> ...WIP... </h1>
 

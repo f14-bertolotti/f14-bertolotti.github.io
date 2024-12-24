@@ -267,6 +267,7 @@ function sink() {
         }
     }
 }
+
 function source() {
     const canvas = document.getElementById("source");
     const ctx = canvas.getContext("2d");
@@ -285,7 +286,34 @@ function source() {
     }
 }
 
+function tangent() {
+    const canvas = document.getElementById("tangent-space");
+    const ctx = canvas.getContext("2d");
+    console.log(getColor());
+    let color = getColor();
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.lineWidth = 1.5;
+    // draw a circle
+    ctx.beginPath();
+    ctx.arc(100, 100, 50, 0, 2 * Math.PI);
+    ctx.closePath();
+    ctx.stroke();
+    // draw tangent line
+    ctx.beginPath();
+    ctx.moveTo(0, 105);
+    ctx.lineTo(16, 0);
+    ctx.closePath();
+    ctx.stroke();
+}
+
+
+
+
+
+
 new p5(rosslerAnimation);
 new p5(circleAnimation);
 sink();
 source();
+tangent();
