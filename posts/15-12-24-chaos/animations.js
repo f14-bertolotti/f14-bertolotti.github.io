@@ -1,3 +1,16 @@
+function toggleTheme() {
+    const folder = document.getElementById('root-folder').getAttribute('value');
+
+    document.body.classList.toggle('dark-mode');
+    if (document.getElementById("theme-icon").src.endsWith("icons/moon.svg")) {
+        document.getElementById("theme-icon").src = folder+"/"+"icons/sun.svg";
+
+    } else if (document.getElementById("theme-icon").src.endsWith("icons/sun.svg")) {
+        document.getElementById("theme-icon").src = folder +"/"+ "icons/moon.svg";
+    }
+    sink();
+}
+
 function project3DPointTo2D(x, y, z) {
     let scale = 20;
     return {
@@ -17,6 +30,59 @@ function rotateX3DPoint(x, y, z, angle) {
     };
 }
 
+function drawArrow(x, y, dx, dy, ctx, reverse = false) {
+    const arrowLength = Math.sqrt(dx * dx + dy * dy);
+    const headSize = 5;
+
+    // Normalize the vector to scale arrow size
+    const scale = 20 / arrowLength; // Adjust scale factor for arrow size
+    const scaledDx = dx * scale;
+    const scaledDy = dy * scale;
+
+    // Draw the main line
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + scaledDx, y + scaledDy);
+    ctx.stroke();
+
+    // Draw the arrowhead
+    if (reverse) {
+        const angle = Math.atan2(-scaledDy, -scaledDx);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(
+            x - headSize * Math.cos(angle - Math.PI / 6),
+            y - headSize * Math.sin(angle - Math.PI / 6)
+        );
+        ctx.lineTo(
+            x - headSize * Math.cos(angle + Math.PI / 6),
+            y - headSize * Math.sin(angle + Math.PI / 6)
+        );
+        ctx.closePath();
+        ctx.fill();
+    } else {
+        const angle = Math.atan2(scaledDy, scaledDx);
+        ctx.beginPath();
+        ctx.moveTo(x + scaledDx, y + scaledDy);
+        ctx.lineTo(
+            x + scaledDx - headSize * Math.cos(angle - Math.PI / 6),
+            y + scaledDy - headSize * Math.sin(angle - Math.PI / 6)
+        );
+        ctx.lineTo(
+            x + scaledDx - headSize * Math.cos(angle + Math.PI / 6),
+            y + scaledDy - headSize * Math.sin(angle + Math.PI / 6)
+        );
+        ctx.closePath();
+        ctx.fill();
+    }
+}
+
+function getColor() {
+    if (document.getElementById("theme-icon") == null) return [0,0,0];
+    if (document.getElementById("theme-icon").src.endsWith("icons/moon.svg")) return [0,0,0];
+    if (document.getElementById("theme-icon").src.endsWith("icons/sun.svg")) return [255,255,255];
+    
+}
 
 // Rössler Attractor Parameters
 class Rossler {
@@ -60,12 +126,7 @@ class Rossler {
     drawTrajectories(trajectories, opacities,p) {
     
         // get style color
-        let col = [0,0,0];
-        if (document.getElementById("theme-icon").src.endsWith("icons/moon.svg")) {
-            col = [0,0,0];
-        } else if (document.getElementById("theme-icon").src.endsWith("icons/sun.svg")) {
-            col = [255,255,255];
-        }
+        let col = getColor(); 
     
         trajectories.forEach((trajectory,i) => {
             p.beginShape();
@@ -96,12 +157,7 @@ class Circle {
 
     draw(p, circleman) {
         // get style color
-        let col = [0,0,0];
-        if (document.getElementById("theme-icon").src.endsWith("icons/moon.svg")) {
-            col = [0,0,0];
-        } else if (document.getElementById("theme-icon").src.endsWith("icons/sun.svg")) {
-            col = [255,255,255];
-        }
+        let col = getColor();
 
         p.beginShape();
         p.stroke(col[0], col[1], col[2], p.int(200));
@@ -195,5 +251,41 @@ const rosslerAnimation = (p) => {
     }
 }
 
+function sink() {
+    const canvas = document.getElementById("sink");
+    const ctx = canvas.getContext("2d");
+    let color = getColor();
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.lineWidth = 1.5;
+    const spacing = 30; // Distance between arrows
+    for (let x = -spacing; x < canvas.width; x += spacing) {
+        for (let y = -spacing; y < canvas.height; y += spacing) {
+            if (Math.abs(165-x) > 30 || Math.abs(90-y) > 10) {
+                drawArrow(x, y, 165-x, 90-y, ctx, reverse = false);
+            } 
+        }
+    }
+}
+function source() {
+    const canvas = document.getElementById("source");
+    const ctx = canvas.getContext("2d");
+    console.log(getColor());
+    let color = getColor();
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.lineWidth = 1.5;
+    const spacing = 30; // Distance between arrows
+    for (let x = -spacing; x < canvas.width; x += spacing) {
+        for (let y = -spacing; y < canvas.height; y += spacing) {
+            if (Math.abs(165-x) > 30 || Math.abs(90-y) > 10) {
+                drawArrow(x, y, 165-x, 90-y, ctx, reverse = true);
+            } 
+        }
+    }
+}
+
 new p5(rosslerAnimation);
 new p5(circleAnimation);
+sink();
+source();

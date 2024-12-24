@@ -206,14 +206,58 @@
             <h4> Summary and and Cautionary Note </h4>
 
             <p>
-                In this section, we have discussed autonomous and non-autonomous systems as a way to build dynamical systems. We have done so with discrete time using the iteration of the system. And, we have done so in continuous time using differential equations. 
+            In this section, we have discussed autonomous and non-autonomous systems as a way to build dynamical systems. We have done so with discrete time using the iteration of the system. And, we have done so in continuous time using differential equations. 
             </p>
 
             <p>
-                However, I want to stress that while putting this notes togheter I could not find a good resource that made a distinction between autonomous/non-autonomous systems and dynamical one while, here, I treat them as very different things. Furthermore, it is often more easy to reason about dynamical systems in terms of the autonomous/non-autonomous systems than in terms of the induced dynamical system itself. Well, if you any insight on this, please let me know.
+            However, I want to stress that while putting this notes togheter I could not find a good resource that made a distinction between autonomous/non-autonomous systems and dynamical one while, here, I treat them as very different things. Furthermore, it is often more easy to reason about dynamical systems in terms of the autonomous/non-autonomous systems than in terms of the induced dynamical system itself. Well, if you any insight on this, please let me know.
             </p>
 
-            <h3> Fixed Points </h3>
+            <h3> Fixed Points and their Stability </h3>
+
+            <p>
+            The stability of fixed points is one of the most important concepts in chaos theory. It allows us to understand how the system behaves around a fixed point. So, let's start by defining what a fixed point is.
+            </p>
+
+            <p>
+            <b> Definition (Fixed Point) </b> A fixed point of a dynamical system \((T,\mathcal{M},f)\) is a point \(x \in \mathcal{M}\) such that \(f(x,t)=x\) for all \(t \in T\).
+            </p>
+
+            <p>
+            In other words, a fixed point is a point that does not change over time. It is a point that is invariant under the evolution of the system. For example, if we are modelling the evolution of a population over time, a fixed point would certainly be \(0\) as no new individuals are born or die, regardless oftime.
+            </p>
+
+            <p>
+            <b> Definition (Sink) </b> A fixed point \(x\) is a sink if there is a neighborhood \(U\) of \(x\) such that for any point \(y \in U\), \(\lim_{t\rightarrow \infty} f(y,t) = x\)
+            </p>
+
+            <p>
+            This is pretty simple. We are saying that if we start close enough to the fixed point and evolve the system over time, we will get arbitrarly close to the fixed point. However, we need to be careful. If we treat time, \(T\) as a monoid, like before, we do not have a concept of limit to infinity. We need to more structure to make sense of this definition. So, for this section, we will consider \(T\) to be either \( \mathbb{N} \) or \( \mathbb{R} \). But you could use different structures to define the limit to infinity (for instance, an ordered monoid).
+            </p>
+
+            <p>
+            Here's an example of a vector field that has a sink at the origin.
+            </p>
+            
+            <canvas id="sink" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            <b> Definition (Source) </b> A fixed point \(x\) is a source if there is a neighborhood \(U\) of \(x\) such that for any point \(y \in U\setminus \{x\}\), \(\lim_{t\rightarrow \infty} f(y,t)\not \in U\)
+            </p>
+
+            <p>
+            This is the opposite of a sink. If we start close enough to the fixed point and evolve the system over time, we will eventually get out of the neighborhood of the fixed point.
+            </p>
+
+            <p>
+            Here's an example of a vector field that has a source at the origin.
+            </p>
+ 
+            <canvas id="source" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            Now, that we know what a sink and a source are, we concern ourselves on how these points can be classified. In other words, we want a reliable method to determine if a fixed point is a sink or a source. As it turns out, there is a very simple way to do this. We can look at the derivative of the system at the fixed point.
+            </p>
 
             <h1> ...WIP... </h1>
 
@@ -222,8 +266,6 @@
         <div class="bibliography"></div>
         <div id="footer"></div>
  
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/p5.js"></script>
-        <script src="animations.js"></script>
         <script src="../../scripts/toggle-theme.js"></script>
         <script src="../../scripts/load-header.js"></script>
         <script src="../../scripts/load-footer.js"></script>
@@ -231,6 +273,8 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/p5.js"></script>
+        <script src="animations.js"></script>
 
     </body>
 
