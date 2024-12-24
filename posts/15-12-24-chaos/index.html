@@ -155,16 +155,75 @@
             Now that you arrived to this point, you deserve an animation of this simple dynamical system
             </p>
 
-            <div id="canvas-container-circle" xscale=3 yscale=2 xshift=-5 yshift=+15 width=700 height=300></div>
-           
+            <div id="canvas-container-circle" xscale=15 yscale=10 xshift=0 yshift=100 width=700 height=150></div>
+
+            <p>
+            Ok, this is not as impressive as the animation at the start of the page. But, it describer fairly well what's going on.
+            </p>
+
+            <h3> Autonomous and Non-Autonomous Systems </h3>
+
+            <p>
+            Now, that we have a good understanding of what a dynamical system is, we need to know that we rarely will describe these systems as we did previously, with the updated function. More often, we will see a set of equations that describes the evolution of the system. These equations can be categorized into two main categories: <b>autonomous</b> and <b>non-autonomous</b> systems.
+            </p>
+
+            <p>
+            Autonomous systems are systems that do not depend on time to determine the next state in the system. For example, \(g(x)=2x\) is an autonomous system. Meanwhile, \(g(x,t)=2x+t\) is a non-autonomous system. Notice that, as they are, these systems are not dynamical systems as the properties of the update function are not met. However, we can easily induce a dynamical system from these equations. 
+            </p>
+
+            <p>
+            For the autonomous function, we can define the dynamical system \((\mathbb{N},+),\mathbb{R},(x,t \mapsto g^t(x)))\) where \(g^t\) is the \(t\)-th iteration of the function \(g\). Since this autonomous system is particularly simple, we can even write the update function as \(f(x,t)=2^tx\). We can easily see that \(f(x,0)=2^0x=x\) and \(f(f(x,t_1),t_2)=f(2^{t_1}x,t_2)=2^{t_1+t_2}x=f(x,t_1+t_2)\). So we have a proper dynamical system.
+            </p>
+
+            <p>
+            For the non-autonomous function, the story is a little bit more complicated. We cannot use the system as an update function directly. We need to augment the state space to include time. So that, we can make the same trick we did with the autonomous system. So we get a dynamical system like \((\mathbb{N},+),\mathbb{R}^2,(x,t,\tau \mapsto g^\tau(x,t))\). Here, the role of time is taken by \(\tau\). 
+            </p>
+
+            <p>
+            The trick of iterating the function is very simple, but it works only for dynamical system with discrete time. To have a dynamical system with continuous time, we need to specify our equations differently. Instead of specifying the next state, we will describe the velocity vector of the state. This can be done using differential equations. Like before, let's see a couple of examples.
+            </p>
+
+            <p>
+            Let's suppose our manifold is \(\mathbb{R}\). We want a velocity vector that is proportional to the state. More precisely, if the state at time \(t\) is \(x(t)\), we want the velocity vector to be \(2x(t)\). So, we are saying that:
+            \[
+                \frac{dx(t)}{dt} = 2x(t)
+            \]
+            </p>
+
+            <p>
+            To get our dynamical system, we need to solve this differential equation. Let's get started:
+            \[
+            \begin{aligned}
+                \frac{dx(t)}{dt} &= 2x(t) \\
+                \int \frac{1}{x(t)}dx(t) &= \int 2dt \\
+                \ln|x(t)| &= 2t + C \\
+                x(t) &= e^{2t+C} = C'e^{2t}
+            \end{aligned}
+            \]
+            Now, we have a family of solutions that describes how the state space evolves over time. Our family of dynamical system becomes \( ((\mathbb{R},+),\mathbb{R},(x,t \mapsto C'e^{2t})) \). It is fairly easy to see that the update function is proper for each choice of \(C'\).
+            </p>
+
+            <h4> Summary and and Cautionary Note </h4>
+
+            <p>
+                In this section, we have discussed autonomous and non-autonomous systems as a way to build dynamical systems. We have done so with discrete time using the iteration of the system. And, we have done so in continuous time using differential equations. 
+            </p>
+
+            <p>
+                However, I want to stress that while putting this notes togheter I could not find a good resource that made a distinction between autonomous/non-autonomous systems and dynamical one while, here, I treat them as very different things. Furthermore, it is often more easy to reason about dynamical systems in terms of the autonomous/non-autonomous systems than in terms of the induced dynamical system itself. Well, if you any insight on this, please let me know.
+            </p>
+
+            <h3> Fixed Points </h3>
+
+            <h1> ...WIP... </h1>
 
         </div>
 
         <div class="bibliography"></div>
         <div id="footer"></div>
  
-        <script src=rossler.js></script>
-        <script src=circle.js></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/p5.js"></script>
+        <script src="animations.js"></script>
         <script src="../../scripts/toggle-theme.js"></script>
         <script src="../../scripts/load-header.js"></script>
         <script src="../../scripts/load-footer.js"></script>
@@ -172,7 +231,6 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
 
     </body>
 
