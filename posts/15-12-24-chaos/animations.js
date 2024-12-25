@@ -9,6 +9,11 @@ function toggleTheme() {
         document.getElementById("theme-icon").src = folder +"/"+ "icons/moon.svg";
     }
     sink();
+    source();
+    curve2d();
+    tangentspace();
+    curve3d();
+    example();
 }
 
 function project3DPointTo2D(x, y, z) {
@@ -27,6 +32,28 @@ function rotateX3DPoint(x, y, z, angle) {
         x: x,
         y: y * cos - z * sin,
         z: y * sin + z * cos
+    };
+}
+
+function rotateY3DPoint(x, y, z, angle) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+
+    return {
+        x: x * cos + z * sin,
+        y: y,
+        z: -x * sin + z * cos
+    };
+}
+
+function rotateZ3DPoint(x, y, z, angle) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+
+    return {
+        x: x * cos - y * sin,
+        y: x * sin + y * cos,
+        z: z
     };
 }
 
@@ -271,7 +298,6 @@ function sink() {
 function source() {
     const canvas = document.getElementById("source");
     const ctx = canvas.getContext("2d");
-    console.log(getColor());
     let color = getColor();
     ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
     ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
@@ -289,7 +315,6 @@ function source() {
 function tangent() {
     const canvas = document.getElementById("tangent-space");
     const ctx = canvas.getContext("2d");
-    console.log(getColor());
     let color = getColor();
     ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
     ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
@@ -307,13 +332,289 @@ function tangent() {
     ctx.stroke();
 }
 
+function curve2d() {
+    const canvas = document.getElementById("curve2d");
+    const ctx = canvas.getContext("2d");
+    let color = getColor();
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.lineWidth = 1.5;
+
+    curve  = (t) => {return {x: t, y: Math.cos(t/20) * 20 - t / 10 + 60}};
+    dcurve = (t) => {return {x: 1, y: -Math.sin(t/20) - 1/10}}
+
+    // draw curve
+    ctx.beginPath();
+    for (let t = 0; t <= 350; t += 0.01) {
+        let xy = curve(t);
+        ctx.lineTo(xy.x, xy.y);
+    }
+    ctx.stroke();
+
+    // draw tangent lines
+    for (let t = 0; t <= 350; t += 30) {
+        let xy = curve(t);
+        let dxy = dcurve(t);
+        ctx.beginPath();
+        ctx.fill();
+        drawArrow(xy.x, xy.y, dxy.x, dxy.y, ctx, reverse = false);
+    }
+    
+}
+
+function tangentspace() {
+    const canvas = document.getElementById("tangentspace");
+    const ctx = canvas.getContext("2d");
+    let color = getColor();
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.lineWidth = 1.5;
+
+    // draw grid
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.3)`;
+    for (let x = 30; x <= 350; x += 30) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 300);
+        ctx.stroke();
+    }
+    for (let y = 30; y <= 299; y += 30) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(350, y);
+        ctx.stroke();
+    }
+
+    // draw x-axis
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},.9)`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, 150);
+    ctx.lineTo(350, 150);
+    ctx.stroke();
+
+    // draw x-axis tip
+    ctx.beginPath();
+    ctx.moveTo(350, 150);
+    ctx.lineTo(340, 145);
+    ctx.stroke();
+
+    // draw y-axis
+    ctx.beginPath();
+    ctx.moveTo(180, 0);
+    ctx.lineTo(180, 300);
+    ctx.stroke();
+
+    // draw y-axis tip
+    ctx.beginPath();
+    ctx.moveTo(180, 0);
+    ctx.lineTo(175, 10);
+    ctx.stroke();
+
+    ctx.fillText("(0,0)", 155, 165);
+
+    // draw tangent x-axis
+    ctx.strokeStyle = "rgba(0, 200, 0)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 90);
+    ctx.lineTo(350, 90);
+    ctx.stroke();
+
+    // draw tangent x-axis tip
+    ctx.beginPath();
+    ctx.moveTo(350, 90);
+    ctx.lineTo(340, 85);
+    ctx.stroke();
+
+    // draw tangent y-axis
+    ctx.beginPath();
+    ctx.moveTo(240, 0);
+    ctx.lineTo(240, 300);
+    ctx.stroke();
+
+    // draw tangent y-axis tip
+    ctx.beginPath();
+    ctx.moveTo(240, 0);
+    ctx.lineTo(235, 10);
+    ctx.stroke();
+
+
+    ctx.fillText("(1,1)", 215, 105);
+}
+
+function curve3d(name="sphere") {
+    const canvas = document.getElementById(name);
+    const ctx = canvas.getContext("2d");
+    let color = getColor();
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.lineWidth = 1.5;
+
+    // define curve
+    const a = .2;
+    curve = (t) => {return {
+        x : Math.cos(t) / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2)),
+        y : Math.sin(t) / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2)),
+        z : -(a * t) / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2))
+    }};
+
+    // get points on curve
+    let points = []
+    const numPoints = 200;
+    for (let i = -30; i <= 30; i+=0.1) {
+        const t = i;
+        points.push(curve(t));
+    }
+
+    // scale and shift
+    points = points.map((point) => {
+        return {
+            x: point.x * 100 + 550,
+            y: point.y * 100 + 425,
+            z: point.z * 100 + 200
+        };
+    });
+
+    points = points.map((point) => rotateX3DPoint(point.x, point.y, point.z, 45 * Math.PI / 180));
+
+    // draw curve
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+    }
+    ctx.stroke();
+
+    // draw line
+    ctx.beginPath();
+    ctx.moveTo(100, 50);
+    ctx.lineTo(150, 250);
+    ctx.stroke();
+
+
+    ctx.font = "30px Latin Modern Math";  // Set the font size and family
+    ctx.fillText("𝓜", 100+10, 50);
+
+    ctx.font = "30px Latin Modern Math";  // Set the font size and family
+    ctx.fillText("𝓝", 450, 50);
+
+    ctx.font = "20px Latin Modern Math";  // Set the font size and family
+    ctx.fillText("𝒇", 275, 100);
+
+    // draw arc from M to N
+    ctx.beginPath();
+    ctx.moveTo(150, 150);
+    ctx.quadraticCurveTo(250, 75, 450, 150);
+    ctx.stroke(); 
+
+    //draw tip
+    ctx.beginPath();
+    ctx.moveTo(450, 150);
+    ctx.lineTo(440, 140);
+    ctx.stroke();
+}
+
+function example() {
+    curve3d("example");
+
+    const canvas = document.getElementById("example");
+    const ctx = canvas.getContext("2d");
+
+    let color = getColor();
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.lineWidth = 1.5;
+    
+    // draw real line
+    let y = 450;
+    ctx.beginPath();
+    ctx.moveTo(50, y);
+    ctx.lineTo(300, y);
+    ctx.stroke();
+
+    // draw right tip
+    ctx.beginPath();
+    ctx.moveTo(300, y);
+    ctx.lineTo(290, y-10);
+    ctx.stroke();
+
+    // draw left tip
+    ctx.beginPath();
+    ctx.moveTo(50, y);
+    ctx.lineTo(60, y+10);
+    ctx.stroke();
+
+    // draw center 
+    ctx.beginPath();
+    ctx.moveTo(175, y-5);
+    ctx.lineTo(175, y+5);
+    ctx.stroke();
+
+    // text 0
+    ctx.font = "16px Latin Modern Math"; 
+    ctx.fillText("0", 171, y+20);
+
+    // draw chart phi
+    ctx.beginPath();
+    ctx.moveTo(110, 200);
+    ctx.quadraticCurveTo(80, 350, 175, y-10);
+    ctx.stroke();
+
+    // draw chart phi tip
+    ctx.beginPath();
+    ctx.moveTo(175, y-10);
+    ctx.lineTo(170, y-20);
+    ctx.stroke();
+
+    // text phi
+    ctx.font = "20px Latin Modern Math";
+    ctx.fillText("φ", 80, 300);
+
+    // text \mathcal{R}
+    ctx.font = "20px Latin Modern Math";
+    ctx.fillText("ℝ", 280, y+20);
+
+    // draw 2d euclidean space
+
+    // draw x-axis
+    ctx.beginPath();
+    ctx.moveTo(450, y);
+    ctx.lineTo(700, y);
+    ctx.stroke();
+
+    // draw x-axis tip
+    ctx.beginPath();
+    ctx.moveTo(700, y);
+    ctx.lineTo(690, y-10);
+    ctx.stroke();
+
+    // draw y-axis
+    ctx.beginPath();
+    ctx.moveTo(575, y-125);
+    ctx.lineTo(575, y+125);
+    ctx.stroke();
+
+    // draw y-axis tip
+    ctx.beginPath();
+    ctx.moveTo(575, y-125);
+    ctx.lineTo(565, y-115);
+    ctx.stroke();
+
+    // center text
+    ctx.font = "16px Latin Modern Math";
+    ctx.fillText("(0,0)", 580, y+20);
 
 
 
+}
 
 
 new p5(rosslerAnimation);
 new p5(circleAnimation);
-sink();
 source();
-tangent();
+sink();
+curve2d();
+tangentspace();
+curve3d();
+example();

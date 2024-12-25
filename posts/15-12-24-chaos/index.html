@@ -19,7 +19,7 @@
         <div id="header"></div>
 
         <div class="post-body">
-            <h1> An Introduction to Chaos Theory </h1>
+            <h1> An Introduction to Chaos Theory with Differntial Topology </h1>
             <div id="canvas-container-rossler" xscale=3 yscale=2 xshift=-5 yshift=+15 width=700 height=300></div>
 
             <p>
@@ -290,7 +290,11 @@
             </p>
 
             <p>
-            First of all, we are saying that an atlas is a manifold if it covers the whole manifold, nothing surprising. However, we also require a certain property on overlapping charts. We require that the transition between the euclidean patch, image of \(\phi_i\), and the euclidean patch, image of \(\phi_j\), is smooth (and vice-versa). This is what will derive the notion of differentiability on the manifold.
+            First of all, we are saying that an atlas needs tp cover the whole manifold, nothing surprising. However, we also require a certain property on overlapping charts. We require that the transition between the euclidean patch, image of \(\phi_i\), and the euclidean patch, image of \(\phi_j\), is smooth (and vice-versa). 
+            </p>
+
+            <p>
+            The atlas of manifold is the object from which many other definition will depend. It is our way to the euclidean space. This way will allow us transport many useful concepts from the euclidean space to the manifold. A, differntial manifold is simply a manifold with an atlas that will allow us transport the concept of differentiation from the euclidean space to the manifold itself.
             </p>
 
             <p>
@@ -298,25 +302,77 @@
             </p>
 
             <p>
-            Ok, but how do we define the notion of derivative given a differentiable manifold? Let us first define the notion of differentiability at a point.
+            Now, we have the object in which we can compute the differentiation. However, how do we compute the derivative. In  order to do so, let start with an anology. Conisder a curve paratrized according to a time parameter \(t\) living in a n-dimensional euclidean space. We know that the derivative at a point is the tangent vector to the curve at that point. For instance, consider the 2-dimensional curve \(\gamma(t)=(t,\cos(t) + t)\). I have plotted the curve altogether with its (normalized) tangent vectors at several points in the figure below. Each tangent vector (which represent the derivative) lives in the tangent space of \mathbb{R}^2 at the point of interest.
+            </p>
+
+            <canvas id="curve2d" width="350" height="100" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            In \(\mathbb{R}^n\), you can imagine the tangent space at point \(p\), \(T_p\mathbb{R}^n\), as the space of all possible tangent vectors at the point \(p\). This is a n-dimensional vector space. Below, I plot the 2-dimensional euclidean space \(\mathbb{R}^2\) with the tangent space at the point \((1,1)\) in green, \(T_{(1,1)}\mathbb{R}^2\). 
+            </p>
+
+            <canvas id="tangentspace" width="350" height="300" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            We have the euclidea tangent space. What is the manifold tangent space? For this, we will use our atlas. So consider a chart \((U,\phi)\) from a differentiable manifold \(\mathcal{M}\). We can define the tangent space at a point \(p \in U\), \(T_p\mathcal{M}\), as the euclidean tangent space at the image of point \(p\), that is \(T_{\phi(p)}\mathbb{R}^n\). 
             </p>
 
             <p>
-            <b> Definition (Differentiable at a Point) </b> Let \(\mathcal{M}=(X_0,T_0)\) and \(\mathcal{N}=(X_1,T_1)\) be a differentiable manifolds. Let \(f:\mathcal{M} \rightarrow \mathcal{N}\) be a function. We say that \(f\) is differentiable at a point \(x \in X_0\) if there is a chart \((U,\phi)\) around \(x\) and a chart \((V,\psi)\) around \(f(x)\) such that the function \(\psi \circ f \circ \phi^{-1}:\phi(U) \rightarrow \psi(V)\) is smooth.
+            <b> Definition (Tangent Space) </b> Let \(\mathcal{M}=(X,T)\) be a differentiable manifold with atlas \(\{(U_i,\phi_i)\}_{i \in I}\). The tangent space at a point \(p \in U_i\), is \(T_p\mathcal{M} = T_{\phi_i(p)}\mathbb{R}^n\). The set of all tangent spaces at all points in the manifold is denoted by \(T\mathcal{M}\).
+            </p> 
+
+            <p>
+            Now, let us consider a generic function from a differentiable manifold to another, \(f:\mathcal{M}\rightarrow\mathcal{N}\). We will define the derivative of this function at a point \(p\in\mathcal{M}\) simply by using the charts. Let \((U,\phi)\) and \((V,\psi)\) be charts on \(\mathcal{M}\) and \(\mathcal{N}\) respectively such that \(p\in U\) and \(f(p)\in V)\). We define the derivative of \(f\) at \(p\) as the derivative of the function \(\psi \circ f \circ \phi^{-1} = g\) at the point \(\phi(p)\). 
             </p>
 
             <p>
-            So a function \(f\) is differentiable if starting from the euclidean patch, going to the input manifold \(\mathcal{M}\), to the output manifold \(\mathcal{N}\), and back to an euclidean patch we have a smooth transition (This is exactly the map \(\psi \circ f \circ \phi^{-1}\)). From this definition, you can already see that the notion of differentiation relies all on the charts. 
+            Note that this is an intuitive definition. We do not know how to compute the derivative of \(f\) directly at a point \(p\). However, we can project \(p\) to the euclidean space, and use the charts to derive a transformation from and to euclidean space. The derivative of \(f\) a \(p\) will be whatever the derivative of \(g\) at \(\phi(p)\) is.
+            </p>
+            
+            <p>
+            Despite its intuitiveness, we will have that derivative of \(f\) will depend on the choice of charts. Meaning that, different charts will give different derivatives. We could define the derivative, in such a way that it does not depend on the charts. However, when will need to compute the derivative, we will need to choose a chart anyway. So, we will not bother with this. 
             </p>
 
             <p>
-            Before addressing the derivative, we need to address the space in which the derivative lives on. In the euclidean space, when we have a function \(f:\mathbb{R} \rightarrow \mathbb{R}\), the space of the derivatives is \(\mathbb{R}\). When we have a function \(f:\mathbb{R}^n \rightarrow \mathbb{R}^m\), the space of the derivatives is \(\mathbb{R}^{n \times m}\) (given by the jacobian matrix). In a manifold, this space will be called the tangent space.
+            <b>Definition (Derivative)</b> Let \(\mathcal{M}\) and \(\mathcal{N}\) be differentiable manifolds. Let \(f:\mathcal{M}\rightarrow\mathcal{N}\) be a function. Let \(p \in \mathcal{M}\). Let \((U,\phi)\) and \((V,\psi)\) be charts on \(\mathcal{M}\) and \(\mathcal{N}\) respectively such that \(p\in U\) and \(f(p)\in V\). The derivative of \(f\) at \(p\) wrt. charts \(\phi\) and \(\psi\) is the jacobian matrix:
+            \[
+            \begin{aligned}
+            D^{\phi,\psi}f(p) = \Large{\begin{bmatrix}  
+                \frac{\partial (\phi \circ f \circ \psi^{-1})^i)}
+                {\partial x^j}\Bigg|_{\phi(p)}
+                \end{bmatrix}}
+            \end{aligned}
+            \]
             </p>
 
             <p>
-            <b> Definition (Tangent Space) </b>
+            This is definetely still a little bit abstract. But, we can do a simple example to understand this better.
             </p>
 
+            <h4> Example </h4>
+
+            <p>
+            Consider the manifold, \(\mathcal{M}\), made up of point between \(-30\) and \(+30\), \(\{x|x\in(-30,+30)\}\). Consider also the manifold \(\mathcal{N}\), made up from point in the unitary shere \(\{x|x\in\mathbb{R}^3,||x||=1\}\). Let \(f:\mathcal{M}\rightarrow\mathcal{N}\) be the function that maps a point \(x\) to the point in the unitary sphere:
+            \[
+            f(t)=(\frac{\cos(t)}{\sqrt{1+a^2t^2}},\frac{\sin(t)}{\sqrt{1+a^2t^2}},\frac{at}{\sqrt{1+a^2t^2}})
+            \]
+            </p>
+            
+            <p>
+            Below, you can see the image of the function \(f\) in the unitary sphere.
+            </p>
+
+            <canvas id="sphere" width="700" height="300" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            Now, we need to define the charts. We will use the chart \((U,\phi)\) on \(\mathcal{M}\) such that \(U=(-30,+30)\) and \(\phi(x)=x\). We will use the stereographic projections for the sphere. That si, \((V,\psi)\) such that \(V\) is the unitary sphere (excluded the north pole) and \(\psi(x,y,z)=(x/(1-z),y/(1-z))\).
+            </p>
+
+            <p>
+            This will allow us complete the previous picture with its charts.
+            </p>
+
+            <canvas id="example" width="700" height="600" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
 
             <h1> ...WIP... </h1>
 
