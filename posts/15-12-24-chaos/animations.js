@@ -12,8 +12,8 @@ function toggleTheme() {
     source();
     curve2d();
     tangentspace();
-    curve3d();
     example();
+    derivative();
 }
 
 function project3DPointTo2D(x, y, z) {
@@ -555,25 +555,40 @@ function example() {
     ctx.font = "16px Latin Modern Math"; 
     ctx.fillText("0", 171, y+20);
 
-    // draw chart phi
+    // draw char phi
     ctx.beginPath();
-    ctx.moveTo(110, 200);
-    ctx.quadraticCurveTo(80, 350, 175, y-10);
+    ctx.moveTo(100, 200);
+    ctx.quadraticCurveTo(100, 300, 180, y-80);
     ctx.stroke();
 
-    // draw chart phi tip
+    // draw char phi tip
     ctx.beginPath();
-    ctx.moveTo(175, y-10);
-    ctx.lineTo(170, y-20);
+    ctx.moveTo(180, y-80);
+    ctx.lineTo(180, y-90);
+    ctx.stroke();
+
+    // draw chart phi top tip
+    ctx.beginPath();
+    ctx.moveTo(100, 200);
+    ctx.lineTo(92, 210);
     ctx.stroke();
 
     // text phi
     ctx.font = "20px Latin Modern Math";
-    ctx.fillText("φ", 80, 300);
+    ctx.fillText("φ", 95, 300);
+
+    // text phi^-1
+    ctx.font = "20px Latin Modern Math";
+    ctx.fillText("φ⁻¹", 130, 300);
 
     // text \mathcal{R}
     ctx.font = "20px Latin Modern Math";
     ctx.fillText("ℝ", 280, y+20);
+
+    // (-30,+30)
+    ctx.font = "16px Latin Modern Math";
+    ctx.fillText("-30", 20, y+5);
+    ctx.fillText("+30", 305, y+5);
 
     // draw 2d euclidean space
 
@@ -601,10 +616,131 @@ function example() {
     ctx.lineTo(565, y-115);
     ctx.stroke();
 
-    // center text
-    ctx.font = "16px Latin Modern Math";
-    ctx.fillText("(0,0)", 580, y+20);
+   // R^2 text
+    ctx.font = "20px Latin Modern Math";
+    ctx.fillText("ℝ²", 670, y-100);
 
+    // draw char psi
+    ctx.beginPath();
+    let dx = 20
+    ctx.moveTo(420+dx, 200);
+    ctx.quadraticCurveTo(420+dx, 300, 500, y-80);
+    ctx.stroke();
+
+    // draw chart psi bottom tip
+    ctx.beginPath();
+    ctx.moveTo(500, y-80);
+    ctx.lineTo(500, y-90);
+    ctx.stroke();
+
+    // draw chart psi top tip
+    ctx.beginPath();
+    ctx.moveTo(420+dx, 200);
+    ctx.lineTo(420+dx-8, 210);
+    ctx.stroke();
+
+    // text psi
+    ctx.font = "20px Latin Modern Math";
+    ctx.fillText("ψ", 415+dx, 300);
+
+    // text psi^-1
+    ctx.font = "20px Latin Modern Math";
+    ctx.fillText("ψ⁻¹", 450+dx, 300);
+
+    // draw curve from top
+    // define curve
+    const a = .2;
+    curve = (t) => {return {
+        x : Math.cos(t) / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2)),
+        y : Math.sin(t) / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2)),
+        z : -(a * t) / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2))
+    }};
+
+    // get points on curve
+    let points = []
+    const numPoints = 200;
+    for (let i = -30; i <= 30; i+=0.1) {
+        const t = i;
+        points.push(curve(t));
+    }
+
+    // stereo projection
+    points = points.map((point) => {
+        return {
+            x: point.x / (1 - point.z) * 8 + 575,
+            y: point.y / (1 - point.z) * 8 + 450,
+        };
+    });
+
+
+    // draw curve
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+    }
+    ctx.stroke();
+}
+
+function derivative() {
+    const canvas = document.getElementById("derivative");
+    const ctx = canvas.getContext("2d");
+
+    let color = getColor();
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.lineWidth = 1.5;
+
+    // define curve
+    const a = .2;
+    curve = (t) => {return {
+        x : Math.cos(t) / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2)),
+        y : Math.sin(t) / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2)),
+        z : -(a * t) / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2))
+    }};
+                
+    // (-1 - \frac{at}{\sqrt{1 + a^2 t^2}})(-a \cos(t) + \sqrt{1 + a^2 t^2} \sin(t)) \\
+    // (+1 + \frac{at}{\sqrt{1 + a^2 t^2}})(\sqrt{1 + a^2 t^2} \cos(t) + a \sin(t))
+    dcurve = (t) => {return {
+        x : (-1 - a * t / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2))) * (-a * Math.cos(t) + Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2)) * Math.sin(t)),
+        y : (+1 + a * t / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2))) * (Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2)) * Math.cos(t) + a * Math.sin(t)),
+    }}
+
+    // get points on curve
+    let points = []
+    let dpoints = []
+    const numPoints = 200;
+    for (let i = -30; i <= 30; i+=0.1) {
+        const t = i;
+        points.push(curve(t));
+        dpoints.push(dcurve(t));
+    }
+
+    // stereo projection
+    points = points.map((point) => {
+        return {
+            x: point.x / (1 - point.z) * 8 + 175,
+            y: point.y / (1 - point.z) * 8 + 100,
+        };
+    });
+
+
+    // draw curve
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+    }
+    ctx.stroke();
+
+    // draw arrows
+    for (let i = 0; i < dpoints.length - 350; i+=10) {
+        let xy = points[i];
+        let dxy = dpoints[i];
+        drawArrow(xy.x, xy.y, dxy.x, dxy.y, ctx, reverse = false);
+    }
+
+    
 
 
 }
@@ -616,5 +752,5 @@ source();
 sink();
 curve2d();
 tangentspace();
-curve3d();
 example();
+derivative();
