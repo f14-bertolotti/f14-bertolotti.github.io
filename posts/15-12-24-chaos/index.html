@@ -110,7 +110,11 @@
             Now that we have done all this work, I want to confess that it was not really necessary. You can obtain the same results with a much simpler definition. However, we would lose the generality that the following definition provides. Ultimately, we won't need all this structure. But it was an excuse to refresh some concept from topology.
             </p>
 
-            <p> <b> Definition (Dynamical System) </b> A dynamical system is a triplet \((T,\mathcal{M},f)\) where \(T\) is a monoid, \(\mathcal{M}\) is a manifold, and \(f:T \times \mathcal{M} \rightarrow \mathcal{M}\) is a function such that 1) \(\forall x \in \mathcal{M} : f(x,0)=x\), and 2) \(\forall x \in \mathcal{M} : f(f(x,t_1),t_2) = f(x,t_1+t_2)\).
+            <p>
+            <b> Definition (Flow) </b> A flow on a manifold \(\mathcal{M}\) and a monoid \(T\) is a function \(\phi:T \times \mathcal{M} \rightarrow \mathcal{M}\) such that 1) \(\forall x \in \mathcal{M} : \phi(0,x)=x\), and 2) \(\forall x \in \mathcal{M} : \phi(t,\phi(s,x)) = \phi(t+s,x)\).
+            </p>
+
+            <p> <b> Definition (Dynamical System) </b> A dynamical system is a triplet \((T,\mathcal{M},f)\) where \(T\) is a monoid, \(\mathcal{M}\) is a manifold, and \(f:T \times \mathcal{M} \rightarrow \mathcal{M}\) is a flow on \(\mathcal{M}\) and \(T\).
             </p>
 
             <p>
@@ -180,7 +184,8 @@
             </p>
 
             <p>
-            The trick of iterating the function is very simple, but it works only for dynamical system with discrete time. To have a dynamical system with continuous time, we need to specify our equations differently. Instead of specifying the next state, we will describe the velocity vector of the state. This can be done using differential equations. Like before, let's see a couple of examples.
+            The trick of iterating the function is very simple, but it works only for dynamical system with discrete time. To have a dynamical system with continuous time, we need to specify our equations differently. Instead of specifying the next state, we will describe the velocity vector of the state. This can be done using differential equations. The dynamical system will arise from the solution of a Intial Value Problem (IVP).
+            \[\frac{dx(t)}{dt} = F(x(t))~, ~~~~~~~~~~~~~~~~~~  x(0) = x_0\]
             </p>
 
             <p>
@@ -197,11 +202,85 @@
                 \frac{dx(t)}{dt} &= 2x(t) \\
                 \int \frac{1}{x(t)}dx(t) &= \int 2dt \\
                 \ln|x(t)| &= 2t + C \\
-                x(t) &= e^{2t+C} = C'e^{2t}
+                x(t) &= e^{2t+C} \\
+                \implies x(0) &= e^C
+                \implies C = \ln(x(0)) = \ln(x_0) \\
+                \implies x(t) &= e^{2t + \ln(x_0)} = x_0e^{2t}
             \end{aligned}
-            \]
-            Now, we have a family of solutions that describes how the state space evolves over time. Our family of dynamical system becomes \( ((\mathbb{R},+),\mathbb{R},(x,t \mapsto C'e^{2t})) \). It is fairly easy to see that the update function is proper for each choice of \(C'\).
+            \] 
             </p>
+
+            <p>
+            Now, we have a solution that describes how the state space evolves over time. Our dynamical system becomes \( ((\mathbb{R},+),\mathbb{R},(x,t \mapsto xe^{2t})) \). Let us verify that \(f\) is a proper flow. We have that \(f(x,0) = xe^{2*0} = x\) and \(f(f(x,t_1),t_2) = f(xe^{2t_1},t_2) = x e^{2t_1}e^{2t_2} = xe^{2(t_1+t_2)} = f(x,t_1+t_2)\). So, we have a proper dynamical system.
+            </p>
+
+            <p>
+            Let us verify that both the dynamical system and the autonomous system behave the same. We can do this by plotting the evolution of the system over time. Below, I have plotted the evolution of the autonomous system and the induced dynamical system for a variaty of initialization (on the x-axis you see time, and on the y-axis you can see the state space).
+            </p>
+
+            <canvas id="autonomous" width="350" height="200"></canvas>
+            <canvas id="flow"       width="350" height="200"></canvas>
+
+            <p>
+            The situation about non-autonomous system is again a little bit more complicated. But we follow a similar procedure as before. Namely, we solve an initial value problem given by:
+            \[
+            \frac{dx(t)}{dt} = F(x,t)~, ~~~~~~~~~~~~~~~~~~  x(t_0) = t
+            \]
+            </p>
+
+            <p>
+            The only difference being in the initial condition. Let us see an example. Suppose we have the differential equation:
+            \[
+            \frac{dx(t)}{dt} = 2x(t) + t
+            \]
+            </p>
+
+            <p>
+            The solution to this differential equation is a little bit more complicated. So, I will provide only the solution:
+            \[
+            x(t) = Ce^{2t} - \frac{t}{2} - \frac{1}{4}
+            \]
+            </p>
+
+            <p>
+            Now, using the initial condition, we have:
+            \[
+            x(t_0) = Ce^{2t_0} - \frac{t_0}{2} - \frac{1}{4} = x_0 \implies \\
+            C = \frac{x_0 + \frac{t_0}{2} + \frac{1}{4}}{e^{2t_0}} \implies \\
+            x(t) = \left( x_0 + \frac{t_0}{2} + \frac{1}{4} \right)e^{2(t-t_0)} - \frac{t}{2} - \frac{1}{4}
+            \]
+            </p>
+
+            <p>
+            Our dynamical system becomes:
+            \[
+            \left((\mathbb{R},+),\mathbb{R},\left(x,\tau,t \mapsto \left( x + \frac{\tau}{2} + \frac{1}{4} \right)e^{2(t-\tau)} - \frac{t}{2} - \frac{1}{4}\right),\tau+t \right)
+            \]
+            Where \(t\) is the time, \(\tau\) is the starting time, and \(x\) is the initial state. This is not a dynamical system in the strict sense (This is because the properties of the flow for \(t\) are not met). However, if we shift the time to start at \(\tau\) (the initial time), instead of \(0\), we will have a proper dynamical system. So let us verify that the following update function is proper:
+            \[
+                x,\tau,t \mapsto \left( x + \frac{\tau}{2} + \frac{1}{4} \right)e^{2t} - \frac{t+\tau}{2} - \frac{1}{4}~,~~~~~~~~ \tau+t
+            \]
+            </p>
+
+            <p>
+            When \(t=0\), we have: 
+            \[
+            \left( x + \frac{\tau}{2} + \frac{1}{4} \right)e^{0} - \frac{\tau}{2} - \frac{1}{4} = x + \frac{\tau}{2} + \frac{1}{4} - \frac{\tau}{2} - \frac{1}{4} = x
+            \]
+            </p>
+
+            <p>
+            When we evolve the system by \(t_1\) at the first step. This will evolve both the state space \(x\) and the initial time \(\tau\). Finally, we evolve by \(t_2\), we have:
+            \[
+            \small{\begin{aligned}
+            x,\tau,t_1 &\mapsto \left( x + \frac{\tau}{2} + \frac{1}{4} \right)e^{2t_1} - \frac{\tau+t_1}{2} - \frac{1}{4} ,& \tau+t_1 \\
+            x,\tau+t_1,t_2 &\mapsto \left( \left( x + \frac{\tau}{2} + \frac{1}{4} \right)e^{2t_1} - \frac{\tau+t_1}{2} - \frac{1}{4} + \frac{\tau+t_1}{2} + \frac{1}{4} \right)e^{2t_2} - \frac{\tau+t_1+t_2}{2} - \frac{1}{4} ,& \tau+t_1+t_2 \\
+            x,\tau,t_1+t_2 &\mapsto \left( x + \frac{\tau}{2} + \frac{1}{4} \right)e^{2(t_1+t_2)} - \frac{\tau+t_1+t_2}{2} - \frac{1}{4} ,& \tau+t_1+t_2
+            \end{aligned}}
+            \]
+            You can check by yourself that the last two maps are indeed the same, and thus, this is a proper flow.
+            </p>
+
 
             <h4> Summary and and Cautionary Note </h4>
 
@@ -366,7 +445,7 @@
             Over the situtation can be pictured as follows:
             </p>
 
-            <canvas id="example" width="700" height="600" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+            <canvas id="example" width="700" height="700" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
 
             <p>
             Using \(\phi\), we can go back and forth from the manifold \(\mathcal{M}\) to the 1-dimensional euclidean space. Using \(\psi\), we can go back and forth from the manifold \(\mathcal{N}\) to the euclidean space. With \(f\), we can go from \(\mathcal{M}\) to \(\mathcal{N}\). Now, we will compute the derivative of \(f\) with respect to the charts \(\phi\) and \(\psi\), this is \(D^{\phi,\psi}f(t)\).

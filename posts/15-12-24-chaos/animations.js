@@ -14,6 +14,8 @@ function toggleTheme() {
     tangentspace();
     example();
     derivative();
+    autonomous();
+    flow();
 }
 
 function project3DPointTo2D(x, y, z) {
@@ -499,20 +501,6 @@ function curve3d(name="sphere") {
     ctx.font = "30px Latin Modern Math";  // Set the font size and family
     ctx.fillText("𝓝", 450, 50);
 
-    ctx.font = "20px Latin Modern Math";  // Set the font size and family
-    ctx.fillText("𝒇", 275, 100);
-
-    // draw arc from M to N
-    ctx.beginPath();
-    ctx.moveTo(150, 150);
-    ctx.quadraticCurveTo(250, 75, 450, 150);
-    ctx.stroke(); 
-
-    //draw tip
-    ctx.beginPath();
-    ctx.moveTo(450, 150);
-    ctx.lineTo(440, 140);
-    ctx.stroke();
 }
 
 function example() {
@@ -527,7 +515,7 @@ function example() {
     ctx.lineWidth = 1.5;
     
     // draw real line
-    let y = 450;
+    let y = 550;
     ctx.beginPath();
     ctx.moveTo(50, y);
     ctx.lineTo(300, y);
@@ -555,97 +543,127 @@ function example() {
     ctx.font = "16px Latin Modern Math"; 
     ctx.fillText("0", 171, y+20);
 
-    // draw char phi
-    ctx.beginPath();
-    ctx.moveTo(100, 200);
-    ctx.quadraticCurveTo(100, 300, 180, y-80);
-    ctx.stroke();
-
-    // draw char phi tip
-    ctx.beginPath();
-    ctx.moveTo(180, y-80);
-    ctx.lineTo(180, y-90);
-    ctx.stroke();
-
-    // draw chart phi top tip
-    ctx.beginPath();
-    ctx.moveTo(100, 200);
-    ctx.lineTo(92, 210);
-    ctx.stroke();
-
-    // text phi
+    // R text
     ctx.font = "20px Latin Modern Math";
-    ctx.fillText("φ", 95, 300);
+    ctx.fillText("ℝ", 300, y+20);
 
-    // text phi^-1
-    ctx.font = "20px Latin Modern Math";
-    ctx.fillText("φ⁻¹", 130, 300);
 
-    // text \mathcal{R}
-    ctx.font = "20px Latin Modern Math";
-    ctx.fillText("ℝ", 280, y+20);
-
-    // (-30,+30)
-    ctx.font = "16px Latin Modern Math";
-    ctx.fillText("-30", 20, y+5);
-    ctx.fillText("+30", 305, y+5);
 
     // draw 2d euclidean space
 
     // draw x-axis
     ctx.beginPath();
-    ctx.moveTo(450, y);
-    ctx.lineTo(700, y);
+    let dx = -20;
+    ctx.moveTo(450+dx, y);
+    ctx.lineTo(700+dx, y);
     ctx.stroke();
 
     // draw x-axis tip
     ctx.beginPath();
-    ctx.moveTo(700, y);
-    ctx.lineTo(690, y-10);
+    ctx.moveTo(700+dx, y);
+    ctx.lineTo(690+dx, y-10);
     ctx.stroke();
 
     // draw y-axis
     ctx.beginPath();
-    ctx.moveTo(575, y-125);
-    ctx.lineTo(575, y+125);
+    ctx.moveTo(575+dx, y-125);
+    ctx.lineTo(575+dx, y+125);
     ctx.stroke();
 
     // draw y-axis tip
     ctx.beginPath();
-    ctx.moveTo(575, y-125);
-    ctx.lineTo(565, y-115);
+    ctx.moveTo(575+dx, y-125);
+    ctx.lineTo(565+dx, y-115);
     ctx.stroke();
 
    // R^2 text
     ctx.font = "20px Latin Modern Math";
-    ctx.fillText("ℝ²", 670, y-100);
+    ctx.fillText("ℝ²", 670+dx, y-100);
 
-    // draw char psi
+    // draw let-to-right arrow
     ctx.beginPath();
-    let dx = 20
-    ctx.moveTo(420+dx, 200);
-    ctx.quadraticCurveTo(420+dx, 300, 500, y-80);
+    ctx.moveTo(170, y-400);
+    ctx.lineTo(410, y-400);
     ctx.stroke();
 
-    // draw chart psi bottom tip
+    // draw left-to-right tip
     ctx.beginPath();
-    ctx.moveTo(500, y-80);
-    ctx.lineTo(500, y-90);
+    ctx.moveTo(410, y-400);
+    ctx.lineTo(400, y-410);
     ctx.stroke();
 
-    // draw chart psi top tip
-    ctx.beginPath();
-    ctx.moveTo(420+dx, 200);
-    ctx.lineTo(420+dx-8, 210);
-    ctx.stroke();
-
-    // text psi
+    // f text
     ctx.font = "20px Latin Modern Math";
-    ctx.fillText("ψ", 415+dx, 300);
+    ctx.fillText("𝑓", 280, y-410);
 
-    // text psi^-1
+    // top-to-bottom (left) arrow
+    let dy = -20
+    ctx.beginPath();
+    ctx.moveTo(150, y-250+dy);
+    ctx.lineTo(150, y-120+dy);
+    ctx.stroke();
+
+    // top-to-bottom (left) tip
+    ctx.beginPath();
+    ctx.moveTo(150, y-120+dy);
+    ctx.lineTo(140, y-130+dy);
+    ctx.stroke();
+
+    // bottom-to-top (left) arrow
+    ctx.beginPath();
+    ctx.moveTo(170, y-250+dy);
+    ctx.lineTo(170, y-120+dy);
+    ctx.stroke();
+
+    // bottom-to-top (left) tip
+    ctx.beginPath();
+    ctx.moveTo(170, y-250+dy);
+    ctx.lineTo(180, y-240+dy);
+    ctx.stroke();
+
+    // phi text
     ctx.font = "20px Latin Modern Math";
-    ctx.fillText("ψ⁻¹", 450+dx, 300);
+    ctx.fillText("𝜙", 130, y-170+dy);
+
+    // phi^-1 text
+    ctx.font = "20px Latin Modern Math";
+    ctx.fillText("𝜙⁻¹", 180, y-170+dy);
+
+    // top-to-bottom (left) arrow
+    dx = +390;
+    ctx.beginPath();
+    ctx.moveTo(150+dx, y-250+dy);
+    ctx.lineTo(150+dx, y-120+dy);
+    ctx.stroke();
+
+    // top-to-bottom (left) tip
+    ctx.beginPath();
+    ctx.moveTo(150+dx, y-120+dy);
+    ctx.lineTo(140+dx, y-130+dy);
+    ctx.stroke();
+
+    // bottom-to-top (left) arrow
+    ctx.beginPath();
+    ctx.moveTo(170+dx, y-250+dy);
+    ctx.lineTo(170+dx, y-120+dy);
+    ctx.stroke();
+
+    // bottom-to-top (left) tip
+    ctx.beginPath();
+    ctx.moveTo(170+dx, y-250+dy);
+    ctx.lineTo(180+dx, y-240+dy);
+    ctx.stroke();
+
+    // psi text
+    ctx.font = "20px Latin Modern Math";
+    ctx.fillText("𝜓", 130+dx, y-170+dy);
+
+    // psi^-1 text
+    ctx.font = "20px Latin Modern Math";
+    ctx.fillText("𝜓⁻¹", 180+dx, y-170+dy);
+
+
+
 
     // draw curve from top
     // define curve
@@ -667,8 +685,8 @@ function example() {
     // stereo projection
     points = points.map((point) => {
         return {
-            x: point.x / (1 - point.z) * 8 + 575,
-            y: point.y / (1 - point.z) * 8 + 450,
+            x: point.x / (1 - point.z) * 8 + 555,
+            y: point.y / (1 - point.z) * 8 + 550,
         };
     });
 
@@ -699,8 +717,6 @@ function derivative() {
         z : -(a * t) / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2))
     }};
                 
-    // (-1 - \frac{at}{\sqrt{1 + a^2 t^2}})(-a \cos(t) + \sqrt{1 + a^2 t^2} \sin(t)) \\
-    // (+1 + \frac{at}{\sqrt{1 + a^2 t^2}})(\sqrt{1 + a^2 t^2} \cos(t) + a \sin(t))
     dcurve = (t) => {return {
         x : (-1 - a * t / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2))) * (-a * Math.cos(t) + Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2)) * Math.sin(t)),
         y : (+1 + a * t / Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2))) * (Math.sqrt(1 + Math.pow(a,2) * Math.pow(t,2)) * Math.cos(t) + a * Math.sin(t)),
@@ -740,9 +756,90 @@ function derivative() {
         drawArrow(xy.x, xy.y, dxy.x, dxy.y, ctx, reverse = false);
     }
 
+}
+
+function flow() {
+    const canvas = document.getElementById("flow");
+    const ctx = canvas.getContext("2d");
+
+    let color = getColor();
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.lineWidth = 1.5;
+
+    // define curve
+    let curve = (x,t) => {return x*Math.exp(2*t)};
+
+    // for some initializations
     
+    for (let x = 0; x <= 1; x+=0.1) {
+        // get points on curve
+        let points = []
+        for (let t = 0; t <= 2.5; t+=0.01) {
+            points.push({t:t,x:curve(x,t)});
+        }
 
+        // scale and shift
+        points = points.map((point) => {
+            return {
+                t: point.t*120 + 30,
+                x: -point.x + 180 
+            };
+        });
 
+        // plot curve
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].t, points[i].x);
+        }
+        ctx.stroke();
+    }
+
+    // text x,t |-> x*e^2t
+    ctx.font = "20px Latin Modern Math";
+    ctx.fillText("x,t ↦ x·exp(2t)", 100, 30);
+}
+
+function autonomous() {
+    const canvas = document.getElementById("autonomous");
+    const ctx = canvas.getContext("2d");
+
+    let color = getColor();
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.lineWidth = 1.5;
+
+    // plot differential equation dx/dt = 2x with dt = 0.01
+    
+    for (let x = 0; x <= 1; x+=0.1) {
+        let points = [];
+        let z = x;
+        for (let t = 0; t <= 2.5; t+=0.01) {
+            points.push({t:t,x:z});
+            z = z + 2*z*0.01;
+        }
+
+        // scale and shift
+        points = points.map((point) => {
+            return {
+                t: point.t*120 + 30,
+                x: -point.x + 180 
+            };
+        });
+
+        // plot curve
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].t, points[i].x);
+        }
+        ctx.stroke();
+    }
+
+    // text dx/dt = 2x
+    ctx.font = "20px Latin Modern Math";
+    ctx.fillText("dx/dt = 2x", 100, 30);
 }
 
 
@@ -754,3 +851,5 @@ curve2d();
 tangentspace();
 example();
 derivative();
+flow();
+autonomous();
