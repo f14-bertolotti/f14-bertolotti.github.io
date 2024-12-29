@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../../style.css">
+        <link rel="stylesheet" href="../../post.css">
+        <link rel="stylesheet" href="../../code.css">
+
+        <title>Disarray</title>
+
+    </head>
+    
+    <body>
+
+        <div id="root-folder" value="../../"></div>
+
+        <div id="header"></div>
+
+        <div class="post-body">
+            <h1> Chaos Theory with Differential Topology (Part II) </h1>
+            <div id="canvas-container-lorenz" xscale=2.4 yscale=2 xshift=0 yshift=+20 width=700 height=300></div>
+            <h3> Fixed Points and their Stability </h3>
+
+            <p>
+            The stability of fixed points is one of the most important concepts in chaos theory. It allows us to understand how the system behaves around a fixed point. So, let's start by defining what a fixed point is.
+            </p>
+
+            <p>
+            <b> Definition (Fixed Point) </b> A fixed point of a dynamical system \((T,\mathcal{M},f)\) is a point \(x \in \mathcal{M}\) such that \(f(x,t)=x\) for all \(t \in T\).
+            </p>
+
+            <p>
+            In other words, a fixed point is a point that does not change over time. It is a point that is invariant under the evolution of the system. For example, if we are modelling the evolution of a population over time, a fixed point would certainly be \(0\) as no new individuals are born or die, regardless oftime.
+            </p>
+
+            <p>
+            <b> Definition (Sink) </b> A fixed point \(x\) is a sink if there is a neighborhood \(U\) of \(x\) such that for any point \(y \in U\), \(\lim_{t\rightarrow \infty} f(y,t) = x\)
+            </p>
+
+            <p>
+            This is pretty simple. We are saying that if we start close enough to the fixed point and evolve the system over time, we will get arbitrarly close to the fixed point. However, we need to be careful. If we treat time, \(T\) as a monoid, like before, we do not have a concept of limit to infinity. We need to more structure to make sense of this definition. So, for this section, we will consider \(T\) to be either \( \mathbb{N} \) or \( \mathbb{R} \). But you could use different structures to define the limit to infinity (for instance, an ordered monoid).
+            </p>
+
+            <p>
+            Here's an example of a vector field that has a sink at the origin.
+            </p>
+            
+            <canvas id="sink" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            <b> Definition (Source) </b> A fixed point \(x\) is a source if there is a neighborhood \(U\) of \(x\) such that for any point \(y \in U\setminus \{x\}\), \(\lim_{t\rightarrow \infty} f(y,t)\not \in U\)
+            </p>
+
+            <p>
+            This is the opposite of a sink. If we start close enough to the fixed point and evolve the system over time, we will eventually get out of the neighborhood of the fixed point.
+            </p>
+
+            <p>
+            Here's an example of a vector field that has a source at the origin.
+            </p>
+ 
+            <canvas id="source" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            Now, that we know what a sink and a source are, we concern ourselves on how these points can be classified. In other words, we want a reliable method to determine if a fixed point is a sink or a source. As it turns out, there is a very simple way to do this. We can look at the derivative of the system at the fixed point. But wait a minute, we never said that our manifold are differentiable. So, we will take a break from the dynamical system stuff to talk a little bit about differntiable manifolds.
+            </p>
+
+            <h3> Differentiable Manifolds </h3>
+
+            <p>
+            <b> Definition (Chart) </b> Let \(\mathcal{M}\) be a manifold. A chart on \(\mathcal{M}\) is a pair \((U,\phi)\) where \(U\) is an open set in \(\mathcal{M}\) and \(\phi:U \rightarrow \phi(U) \subseteq \mathbb{R}^n\) is a homeomorphism (bijective and both \(f\) and \(f^-1\) are continuos) with \(\phi(U)\) also open.
+            </p>
+
+            <p>
+            Having a chart on a manifold is like having a map between a patch of the manifold (the open set \(U\)) and to a patch of the euclidean space (the open set \(\phi(U)\)). Further, we require this transition to be smooth in both directions (from the manifold to the euclidean space and vice-versa). 
+            </p>
+
+            <p>
+            <b> Definition (Overlapping Charts) </b> Two charts \((U_i,\phi_i)\) and \((U_j,\phi_j)\) are said to overlap if \(U_i \cap U_j \neq \emptyset\).
+            </p>
+
+            <p>
+            Nothing to be said here. Just that we need to define this concept to define the next one.
+            </p>
+
+            <p>
+            <b> Definition (Smooth) </b> A function \(f:\mathbb{R}^n \rightarrow \mathbb{R}^m\) is smooth if all the partial derivatives of all orders exist and are continuous.
+            </p>
+
+            <p>
+            Smooth functions are those function that are differentiable as many times as you want. Often you will find this class of function under the symbol \(C^\infty\). 
+            </p>
+
+            <p>
+            <b> Definition (Atlas) </b> An atlas on a manifold \(\mathcal{M}=(X,T)\) is a collection of charts \(\{(U_i,\phi_i)\}_{i \in I}\) such that: 1) \(X \subseteq \cup_{i\in I} U_i \) (that is the open set cover the manifold). 2) For any pair of overlapping charts  \((U_i,\phi_i)\) and \((U_j,\phi_j)\) in the atlas, the transition function \(\phi_j \circ \phi_i^{-1}: \phi_i(U_i \cap U_j) \rightarrow \phi_j(U_i \cap U_j)\) is smooth (that is the charts are compatible).
+            </p>
+
+            <p>
+            First of all, we are saying that an atlas needs tp cover the whole manifold, nothing surprising. However, we also require a certain property on overlapping charts. We require that the transition between the euclidean patch, image of \(\phi_i\), and the euclidean patch, image of \(\phi_j\), is smooth (and vice-versa). 
+            </p>
+
+            <p>
+            The atlas of manifold is the object from which many other definition will depend. It is our way to the euclidean space. This way will allow us transport many useful concepts from the euclidean space to the manifold. A, differntial manifold is simply a manifold with an atlas that will allow us transport the concept of differentiation from the euclidean space to the manifold itself.
+            </p>
+
+            <p>
+            <b> Definition (Differentiable Manifold) </b> A manifold \(\mathcal{M}=(X,T)\) is a differentiable manifold if it has an a smooth atlas.
+            </p>
+
+            <p>
+            Now, we have the object in which we can compute the differentiation. However, how do we compute the derivative. In  order to do so, let start with an anology. Conisder a curve paratrized according to a time parameter \(t\) living in a n-dimensional euclidean space. We know that the derivative at a point is the tangent vector to the curve at that point. For instance, consider the 2-dimensional curve \(\gamma(t)=(t,\cos(t) + t)\). I have plotted the curve altogether with its (normalized) tangent vectors at several points in the figure below. Each tangent vector (which represent the derivative) lives in the tangent space of \mathbb{R}^2 at the point of interest.
+            </p>
+
+            <canvas id="curve2d" width="350" height="100" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            In \(\mathbb{R}^n\), you can imagine the tangent space at point \(p\), \(T_p\mathbb{R}^n\), as the space of all possible tangent vectors at the point \(p\). This is a n-dimensional vector space. Below, I plot the 2-dimensional euclidean space \(\mathbb{R}^2\) with the tangent space at the point \((1,1)\) in green, \(T_{(1,1)}\mathbb{R}^2\). 
+            </p>
+
+            <canvas id="tangentspace" width="350" height="300" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            We have the euclidea tangent space. What is the manifold tangent space? For this, we will use our atlas. So consider a chart \((U,\phi)\) from a differentiable manifold \(\mathcal{M}\). We can define the tangent space at a point \(p \in U\), \(T_p\mathcal{M}\), as the euclidean tangent space at the image of point \(p\), that is \(T_{\phi(p)}\mathbb{R}^n\). 
+            </p>
+
+            <p>
+            <b> Definition (Tangent Space) </b> Let \(\mathcal{M}=(X,T)\) be a differentiable manifold with atlas \(\{(U_i,\phi_i)\}_{i \in I}\). The tangent space at a point \(p \in U_i\), is \(T_p\mathcal{M} = T_{\phi_i(p)}\mathbb{R}^n\). The set of all tangent spaces at all points in the manifold is denoted by \(T\mathcal{M}\).
+            </p> 
+
+            <p>
+            Now, let us consider a generic function from a differentiable manifold to another, \(f:\mathcal{M}\rightarrow\mathcal{N}\). We will define the derivative of this function at a point \(p\in\mathcal{M}\) simply by using the charts. Let \((U,\phi)\) and \((V,\psi)\) be charts on \(\mathcal{M}\) and \(\mathcal{N}\) respectively such that \(p\in U\) and \(f(p)\in V)\). We define the derivative of \(f\) at \(p\) as the derivative of the function \(\psi \circ f \circ \phi^{-1} = g\) at the point \(\phi(p)\). 
+            </p>
+
+            <p>
+            Note that this is an intuitive definition. We do not know how to compute the derivative of \(f\) directly at a point \(p\). However, we can project \(p\) to the euclidean space, and use the charts to derive a transformation from and to euclidean space. The derivative of \(f\) a \(p\) will be whatever the derivative of \(g\) at \(\phi(p)\) is.
+            </p>
+            
+            <p>
+            Despite its intuitiveness, we will have that derivative of \(f\) will depend on the choice of charts. Meaning that, different charts will give different derivatives. We could define the derivative, in such a way that it does not depend on the charts. However, when will need to compute the derivative, we will need to choose a chart anyway. So, we will not bother with this. 
+            </p>
+
+            <p>
+            <b>Definition (Derivative)</b> Let \(\mathcal{M}\) and \(\mathcal{N}\) be differentiable manifolds. Let \(f:\mathcal{M}\rightarrow\mathcal{N}\) be a function. Let \(p \in \mathcal{M}\). Let \((U,\phi)\) and \((V,\psi)\) be charts on \(\mathcal{M}\) and \(\mathcal{N}\) respectively such that \(p\in U\) and \(f(p)\in V\). The derivative of \(f\) at \(p\) wrt. charts \(\phi\) and \(\psi\) is the jacobian matrix:
+            \[
+            \begin{aligned}
+            D^{\phi,\psi}f(p) = \Large{\begin{bmatrix}  
+                \frac{\partial (\psi \circ f \circ \phi^{-1})^i)}
+                {\partial x^j}\Bigg|_{\phi(p)}
+                \end{bmatrix}}
+            \end{aligned}
+            \]
+            </p>
+
+            <p>
+            This is definetely still a little bit abstract. But, we can do a simple example to understand this better.
+            </p>
+
+            <h4> Example </h4>
+
+            <p>
+            Consider the manifold, \(\mathcal{M}\), made up of point between \(-30\) and \(+30\), \(\{x|x\in(-30,+30)\}\). Consider also the manifold \(\mathcal{N}\), made up from point in the unitary shere \(\{x|x\in\mathbb{R}^3,||x||=1\}\). Let \(f:\mathcal{M}\rightarrow\mathcal{N}\) be the function that maps a point \(x\) to the point in the unitary sphere:
+            \[
+            f(t)=\left(\frac{\cos(t)}{\sqrt{1+a^2t^2}},\frac{\sin(t)}{\sqrt{1+a^2t^2}},\frac{at}{\sqrt{1+a^2t^2}}\right)
+            \]
+            </p>
+            
+            <p>
+            Now, we need to define the charts. We will use the chart \((U,\phi)\) on \(\mathcal{M}\) such that \(U=(-30,+30)\) and \(\phi(x)=x\). We will use the stereographic projections for the sphere. That si, \((V,\psi)\) such that \(V\) is the unitary sphere (excluded the north pole) and \(\psi(x,y,z)=(x/(1-z),y/(1-z))\).
+            </p>
+
+            <p>
+            Over the situtation can be pictured as follows:
+            </p>
+
+            <canvas id="example" width="700" height="700" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            Using \(\phi\), we can go back and forth from the manifold \(\mathcal{M}\) to the 1-dimensional euclidean space. Using \(\psi\), we can go back and forth from the manifold \(\mathcal{N}\) to the euclidean space. With \(f\), we can go from \(\mathcal{M}\) to \(\mathcal{N}\). Now, we will compute the derivative of \(f\) with respect to the charts \(\phi\) and \(\psi\), this is \(D^{\phi,\psi}f(t)\).
+
+            \[
+            \psi(f(t)) = \left( \frac{\cos(t)}{\sqrt{1+a^2t^2} - at}, \frac{\sin(t)}{\sqrt{1+a^2t^2} - at} \right).
+            \]
+
+            \[
+            \begin{aligned}
+            D^{\phi,\psi}f(t) &= \Large{\begin{bmatrix}  
+                \frac{\partial (\psi \circ f \circ \phi^{-1})^i)}
+                {\partial x^j}\Bigg|_{\phi(p)}
+                \end{bmatrix}} \\
+                &= \Large{\begin{bmatrix}
+                \frac{\partial \frac{\cos(t)}{\sqrt{1+a^2t^2} - at}}{\partial t} & \frac{\partial \frac{\sin(t)}{\sqrt{1+a^2t^2} - at}}{\partial t} \\
+                \end{bmatrix}} \\
+                &= \begin{bmatrix}
+                (-1 - \frac{at}{\sqrt{1 + a^2 t^2}})(-a \cos(t) + \sqrt{1 + a^2 t^2} \sin(t)) \\
+                (+1 + \frac{at}{\sqrt{1 + a^2 t^2}})(\sqrt{1 + a^2 t^2} \cos(t) + a \sin(t))
+                \end{bmatrix}^T
+
+            \end{aligned}
+            \]
+            </p>
+
+            <p>
+            We can verify that indeed these derivative are correct by plotting them in the sphere.
+            </p>
+
+            <canvas id="derivative" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <h4> Summary And Cautionary Note </h4>
+
+            <p>
+            In this section, we have introduced the concept of differentiable manifold. We have defined the tangent space at a point of the manifold. We have also defined the derivative of a function between manifolds. We have done so using charts. We have also done a simple example to illustrate how to compute the derivative of a function between manifolds.
+            </p>
+
+            <p>
+            Some readers may have expected to see the derivative arrows on the 3d plot. However, the 3d plot is only a 3d-visualization of the manifold. In all reality the manifold \(\mathcal{N}\) is only 2-dimensional. As consequence the derivative of the function \(f\) will be a 2-dimensional vector.
+            </p>
+
+            <p>
+            The most advanced readers may complain regarding the chart dependant definition of the derivative. They may argue that the derivative should be defined in such a way that it does not depend on the charts. This is possible, however, it requires a level of abstraction that it is not needed for this post.
+            </p>
+
+            <h2> Fixed Points and their Stability </h2>
+
+            <p>
+            Now that we have a good understanding of differentiable manifolds, and how differentiation is performed on these objects. We can return to the concept of fixed points. Firstly, we will build our intuition on the 1-dimensional case with a simple example. Consider the autonomous system \(\frac{dx}{dt}=f(x)=x(x-1)\). Recall, that \(f(x)\) is the velocity vector of the system at each point \(x\). To find the fixed point we need only to solve the equation \(f(x)=0\). This is a simple quadratic equation, and we find that the fixed points are \(x=0\) and \(x=1\). We can easily double check that \(f(0)=0\) and \(f(1)=0\).
+            </p>
+
+            <p>
+            Let us also find the flow map associated with this system. This can be done by solving the initial value problem associated with \(\frac{dx}{dt}=x(x-1)\) and \(x(0)=x_0\). This is a separable equation, and we can solve it by partial fractions. We get:
+            \[
+            \begin{aligned}
+            \int \frac{dx(t)}{x(t)(x(t)-1)} &= \int dt \\
+            \ln|1-x(t)| - \ln|x(t)| &= t + C \\
+            x(t) &= \frac{1}{1+e^{(t+C)}} \\
+            \implies x(0) &= \frac{1}{1+e^C} \implies C = \ln\left(\frac{1}{x_0} - 1\right) \\
+            \implies x(t) &= \frac{1}{1+\frac{1}{x_0-1}e^t} = \frac{x_0}{x_0 + (1-x_0)e^t}
+            \end{aligned}
+            \]
+            </p>
+
+            <p>
+            Our dynamical system is 
+            \[\left((\mathbb{R_+},+),\mathbb{R},\left(x,t \overset{f}{\longmapsto} \frac{x}{x + (1-x)e^t}\right)\right)\] 
+            You can check for yourselves that this is a proper dynamical system. 
+            </p>
+
+            <p>
+            We can see that, where the velocity was zero, \(x=0\) and \(x=1\), the flow map is constant. Let us plot the flow map for this system. 
+            </p>
+
+            <canvas id="stability" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            It also fairly easy guess the stability of these points. We can see that \(1\) is a sink, since close enough trajectories will converge to it. We can also see that \(0\) is a source, since close enough trajectories will diverge from it. 
+            </p>
+        </div>
+
+        <div class="bibliography"></div>
+        <div id="footer"></div>
+ 
+        <script src="../../scripts/toggle-theme.js"></script>
+        <script src="../../scripts/load-header.js"></script>
+        <script src="../../scripts/load-footer.js"></script>
+        <script src="../../scripts/load-cits.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/p5.js"></script>
+        <script src="animations.js"></script>
+
+    </body>
+
+</html>

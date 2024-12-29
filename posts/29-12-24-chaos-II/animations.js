@@ -14,8 +14,7 @@ function toggleTheme() {
     tangentspace();
     example();
     derivative();
-    autonomous();
-    flow();
+    stability();
 }
 
 function project3DPointTo2D(x, y, z) {
@@ -113,38 +112,38 @@ function getColor() {
     
 }
 
-// Rössler Attractor Parameters
+// Lorenz Attractor Parameters
 class Rossler {
 
     constructor() {
-        this.a = 0.2;
-        this.b = 0.2;
-        this.c = 3.2;
-        this.dt = 0.035;
+        this.a = 28;
+        this.b = 10;
+        this.c = 8/3;
+        this.dt = 0.01;
         this.startOpacity = 0.7;
         this.aliveTrajectories = new Array(10).fill([]).map(() => [{
-            x : Math.random() * 2 - 1, 
-            y : 0, 
-            z : 0
+            x : Math.random() * 10 - 5,
+            y : Math.random() * 10 - 5, 
+            z : Math.random() * 10 - 5, 
         }]);
         
         this.aliveOpacities = new Array(10).fill(this.startOpacity);
         this.dyingTrajectories = [];
         this.dyingOpacities = [];
-        this.width = parseFloat(document.getElementById("canvas-container-rossler").getAttribute("width"));
-        this.height = parseFloat(document.getElementById("canvas-container-rossler").getAttribute("height"));
-        this.xshift = parseFloat(document.getElementById("canvas-container-rossler").getAttribute("xshift"));
-        this.yshift = parseFloat(document.getElementById("canvas-container-rossler").getAttribute("yshift"));
-        this.xscale = parseFloat(document.getElementById("canvas-container-rossler").getAttribute("xscale"));
-        this.yscale = parseFloat(document.getElementById("canvas-container-rossler").getAttribute("yscale"));
+        this.width = parseFloat(document.getElementById("canvas-container-lorenz").getAttribute("width"));
+        this.height = parseFloat(document.getElementById("canvas-container-lorenz").getAttribute("height"));
+        this.xshift = parseFloat(document.getElementById("canvas-container-lorenz").getAttribute("xshift"));
+        this.yshift = parseFloat(document.getElementById("canvas-container-lorenz").getAttribute("yshift"));
+        this.xscale = parseFloat(document.getElementById("canvas-container-lorenz").getAttribute("xscale"));
+        this.yscale = parseFloat(document.getElementById("canvas-container-lorenz").getAttribute("yscale"));
     }
 
     updateTrajectories(trajectories) {
         trajectories = trajectories.map((traj) => {
             let xyz = traj[traj.length - 1];
-            let x = xyz.x + (-xyz.y - xyz.z) * this.dt;
-            let y = xyz.y + (xyz.x + this.a * xyz.y) * this.dt;
-            let z = xyz.z + (this.b + xyz.z * (xyz.x - this.c)) * this.dt;
+            let x = xyz.x + this.dt * this.a * (xyz.y - xyz.x);
+            let y = xyz.y + this.dt * (xyz.x * (this.b - xyz.z) - xyz.y);
+            let z = xyz.z + this.dt * (xyz.x * xyz.y - this.c * xyz.z);
             if (traj.length > 100) {
                 traj.shift();
             }
@@ -161,8 +160,7 @@ class Rossler {
             p.beginShape();
             p.stroke(col[0], col[1], col[2], p.int(opacities[i]*255));
             trajectory.forEach((xyz, j) => {
-                xyz = rotateX3DPoint(xyz.x, xyz.y, xyz.z, 30 * Math.PI / 180);
-                let xy = project3DPointTo2D(xyz.x, xyz.y, xyz.z);
+                let xy = {x: xyz.x, y: -xyz.z};
                 let x = p.map(xy.x*this.xscale+this.xshift, -30, 30, 0, this.width)
                 let y = p.map(xy.y*this.yscale+this.yshift, -30, 30, 0, this.height)
                 p.vertex(x, y);
@@ -173,72 +171,14 @@ class Rossler {
 
 }
 
-class Circle {
-    constructor() {
-        this.radius = 1;
-        this.width = parseFloat(document.getElementById("canvas-container-circle").getAttribute("width"));
-        this.height = parseFloat(document.getElementById("canvas-container-circle").getAttribute("height"));
-        this.xshift = parseFloat(document.getElementById("canvas-container-circle").getAttribute("xshift"));
-        this.yshift = parseFloat(document.getElementById("canvas-container-circle").getAttribute("yshift"));
-        this.xscale = parseFloat(document.getElementById("canvas-container-circle").getAttribute("xscale"));
-        this.yscale = parseFloat(document.getElementById("canvas-container-circle").getAttribute("yscale"));
-    }
+const lorenzAnimation = (p) => {
 
-    draw(p, circleman) {
-        // get style color
-        let col = getColor();
-
-        p.beginShape();
-        p.stroke(col[0], col[1], col[2], p.int(200));
-        p.strokeWeight(1);
-        for (let i = 0; i < 3.14*2; i+=0.01) {
-            let x = p.cos(i) * this.radius;
-            let y = p.sin(i) * this.radius;
-            let xy = project3DPointTo2D(x, y, 10);
-            x = p.map(xy.x*this.xscale+this.xshift, -30, 30, 0, this.width)
-            y = p.map(xy.y*this.yscale+this.yshift, -30, 30, 0, this.height)
-            p.vertex(x, y);
-        }
-        p.endShape();
-
-        let point = {x: p.cos(circleman), y: p.sin(circleman)};
-        let xy = project3DPointTo2D(point.x, point.y, 10);
-        p.strokeWeight(10);
-        p.point(
-            p.map(xy.x*this.xscale+this.xshift, -30, 30, 0, this.width),
-            p.map(xy.y*this.yscale+this.yshift, -30, 30, 0, this.height)
-        );
-
-    }
-}
-
-const circleAnimation = (p) => {
-    let circle = new Circle();
-    let circleman = 0;
+    let lorenz = new Rossler();
     p.setup = () => {
-        let circleWidth  = parseFloat(document.getElementById("canvas-container-circle").getAttribute("width" ));
-        let circleHeight = parseFloat(document.getElementById("canvas-container-circle").getAttribute("height"));
-        let circleCanvas = p.createCanvas(circleWidth, circleHeight);
-        circleCanvas.parent('canvas-container-circle');
-        p.stroke(255);
-        p.noFill();
-    }
-
-    p.draw = () => {
-        p.clear();
-        circle.draw(p, circleman);
-        circleman += 0.03;
-    }
-}
-
-const rosslerAnimation = (p) => {
-
-    let rossler = new Rossler();
-    p.setup = () => {
-        let rosslerWidth  = parseFloat(document.getElementById("canvas-container-rossler").getAttribute("width" ));
-        let rosslerHeight = parseFloat(document.getElementById("canvas-container-rossler").getAttribute("height"));
-        let rosslerCanvas = p.createCanvas(rosslerWidth, rosslerHeight);
-        rosslerCanvas.parent('canvas-container-rossler');
+        let lorenzWidth  = parseFloat(document.getElementById("canvas-container-lorenz").getAttribute("width" ));
+        let lorenzHeight = parseFloat(document.getElementById("canvas-container-lorenz").getAttribute("height"));
+        let lorenzCanvas = p.createCanvas(lorenzWidth, lorenzHeight);
+        lorenzCanvas.parent('canvas-container-lorenz');
         p.stroke(255);
         p.noFill();
     }
@@ -247,34 +187,34 @@ const rosslerAnimation = (p) => {
         p.background(0);
         p.clear();
     
-        rossler.dyingOpacities = rossler.dyingOpacities.map((opacity) => p.max(0,opacity - .001));
+        lorenz.dyingOpacities = lorenz.dyingOpacities.map((opacity) => p.max(0,opacity - .0001));
     
         // remove dead trajectories
-        rossler.dyingTrajectories = rossler.dyingTrajectories.filter((traj, i) => rossler.dyingOpacities[i] > 0);
-        rossler.dyingOpacities = rossler.dyingOpacities.filter((opacity) => opacity > 0);
+        lorenz.dyingTrajectories = lorenz.dyingTrajectories.filter((traj, i) => lorenz.dyingOpacities[i] > 0);
+        lorenz.dyingOpacities = lorenz.dyingOpacities.filter((opacity) => opacity > 0);
         
         // reset a random trajectory
-        if (Math.random() < 0.02) {
+        if (Math.random() < 0.05) {
             // select random trajectory
-            let trajectoryIndex = Math.floor(Math.random() * rossler.aliveTrajectories.length);
+            let trajectoryIndex = Math.floor(Math.random() * lorenz.aliveTrajectories.length);
             // move the trajectory to the dyingTrajectories
-            rossler.dyingTrajectories.push(rossler.aliveTrajectories[trajectoryIndex]);
-            rossler.dyingOpacities.push(.7);
+            lorenz.dyingTrajectories.push(lorenz.aliveTrajectories[trajectoryIndex]);
+            lorenz.dyingOpacities.push(.7);
             // reset trajectory
-            rossler.aliveTrajectories[trajectoryIndex] = [{
-                x : Math.random() * 2 - 1, 
-                y : Math.random() * 2 - 1, 
-                z : Math.random() * 2 - 1
+            lorenz.aliveTrajectories[trajectoryIndex] = [{
+                x : Math.random() * 4 - 2, 
+                y : Math.random() * 4 - 2, 
+                z : Math.random() * 4 - 2
             }];
         }
     
         // update the system
-        rossler.aliveTrajectories = rossler.updateTrajectories(rossler.aliveTrajectories);
-        rossler.dyingTrajectories = rossler.updateTrajectories(rossler.dyingTrajectories);
+        lorenz.aliveTrajectories = lorenz.updateTrajectories(lorenz.aliveTrajectories);
+        lorenz.dyingTrajectories = lorenz.updateTrajectories(lorenz.dyingTrajectories);
     
         // draw the aliveTrajectories
-        rossler.drawTrajectories(rossler.aliveTrajectories, rossler.aliveOpacities,p);
-        rossler.drawTrajectories(rossler.dyingTrajectories, rossler.dyingOpacities,p);
+        lorenz.drawTrajectories(lorenz.aliveTrajectories, lorenz.aliveOpacities,p);
+        lorenz.drawTrajectories(lorenz.dyingTrajectories, lorenz.dyingOpacities,p);
     
     
     }
@@ -758,8 +698,8 @@ function derivative() {
 
 }
 
-function flow() {
-    const canvas = document.getElementById("flow");
+function stability() {
+    const canvas = document.getElementById("stability");
     const ctx = canvas.getContext("2d");
 
     let color = getColor();
@@ -768,22 +708,22 @@ function flow() {
     ctx.lineWidth = 1.5;
 
     // define curve
-    let curve = (x,t) => {return x*Math.exp(2*t)};
+    let curve = (x,t) => {return x/(x+(1-x)*Math.exp(-t))};
 
     // for some initializations
     
-    for (let x = 0; x <= 1; x+=0.1) {
+    for (const x of [0, 0.33, 0.66, 1, 1.5, 2, 3, 5]) {
         // get points on curve
         let points = []
-        for (let t = 0; t <= 2.5; t+=0.01) {
+        for (let t = 0; t <= 10; t+=0.05) {
             points.push({t:t,x:curve(x,t)});
         }
 
         // scale and shift
         points = points.map((point) => {
             return {
-                t: point.t*120 + 30,
-                x: -point.x + 180 
+                t: point.t * 100,
+                x: -point.x*30 + 180 
             };
         });
 
@@ -796,60 +736,19 @@ function flow() {
         ctx.stroke();
     }
 
-    // text x,t |-> x*e^2t
-    ctx.font = "20px Latin Modern Math";
-    ctx.fillText("x,t ↦ x·exp(2t)", 100, 30);
-}
+    // 0 text
+    ctx.font = "16px Latin Modern Math";
+    ctx.fillText("0", 335, 200-25);
+    ctx.fillText("1", 335, 170-25);
 
-function autonomous() {
-    const canvas = document.getElementById("autonomous");
-    const ctx = canvas.getContext("2d");
-
-    let color = getColor();
-    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
-    ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
-    ctx.lineWidth = 1.5;
-
-    // plot differential equation dx/dt = 2x with dt = 0.01
-    
-    for (let x = 0; x <= 1; x+=0.1) {
-        let points = [];
-        let z = x;
-        for (let t = 0; t <= 2.5; t+=0.01) {
-            points.push({t:t,x:z});
-            z = z + 2*z*0.01;
-        }
-
-        // scale and shift
-        points = points.map((point) => {
-            return {
-                t: point.t*120 + 30,
-                x: -point.x + 180 
-            };
-        });
-
-        // plot curve
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].t, points[i].x);
-        }
-        ctx.stroke();
-    }
-
-    // text dx/dt = 2x
-    ctx.font = "20px Latin Modern Math";
-    ctx.fillText("dx/dt = 2x", 100, 30);
 }
 
 
-new p5(rosslerAnimation);
-new p5(circleAnimation);
+new p5(lorenzAnimation);
 source();
 sink();
 curve2d();
 tangentspace();
 example();
 derivative();
-flow();
-autonomous();
+stability();

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../../style.css">
+        <link rel="stylesheet" href="../../post.css">
+        <link rel="stylesheet" href="../../code.css">
+
+        <title>Disarray</title>
+
+    </head>
+    
+    <body>
+
+        <div id="root-folder" value="../../"></div>
+
+        <div id="header"></div>
+
+        <div class="post-body">
+            <h1> Chaos Theory with Differential Topology (Part I) </h1>
+            <div id="canvas-container-rossler" xscale=3 yscale=2 xshift=-5 yshift=+15 width=700 height=300></div>
+
+            <p>
+                Recently, I have been studying Chaos Theory using <span class="cite" value="Alligood98"></span> (an excellent introductory book on the subject, by the way). In this post, I’ll share some of the concepts and insights I’ve learned. However, please note that I am not an expert on the subject, and I’m still in the process of learning. As such, there may be errors or inaccuracies in my explanations. If you spot any mistakes, I would greatly appreciate it if you could point them out to me. 
+            </p>
+
+            <h3> Preliminaries </h3>
+                
+            <p>
+                Chaos Theory primarily focuses on the study of dynamical systems. To begin exploring this field, we first need to define what a dynamical system is. However, providing a general definition that extends beyond classical Euclidean space requires a bit of groundwork. To properly define a dynamical system, we must first understand a few fundamental geometrical concepts. I will start with the basics, so I ask for your patience as we build up to the more advanced ideas. Let’s begin with the concept of a topological space.
+            </p>
+
+            <p>
+                <b>Definition (Topological Space)</b> A topological space is a pair \((X,\mathcal{T})\), where \(X\) is a set and \(\mathcal{T} \subseteq 2^X\), satisfying the following properties: 
+                <ol>
+                    <li> \(X\) and \(\emptyset\) are in \(\mathcal{T}\),</li>
+                    <li> the intersection of any two sets in \(\mathcal{T}\) is also in \(\mathcal{T}\), and</li>
+                    <li> the union of any collection (finite or infinite) of sets in \(\mathcal{T}\) is in \(\mathcal{T}\).</li>
+                </ol>
+            </p>
+            <p>The elements of \(\mathcal{T}\) are called <b>open</b> sets.</p>
+            
+            <p>
+                You may have noticed an asymmetry in the definition of a topological space. While we allow for infinite (countable or uncountable) unions of open sets, we only permit finite intersections. At first, this might seem a bit unusual. However, this asymmetry reflects the goal of a topological space: to generalize concepts from real analysis. In real analysis, open sets are not closed under infinite intersections, but they are closed under infinite unions. The definition of a topological space is designed to retain this property while broadening the context beyond Euclidean spaces.
+            </p>
+
+            <p>
+                <b>Definition (Continuous Function)</b> Let \(T_1\) and \(T_2\) be topological spaces. A function \(f: T_1 \rightarrow T_2\) is continuous if and only if, for every open set \(U \in T_2\), the preimage \(f^{-1}(U)\) is an open set in \(T_1\). 
+            </p>
+            
+            <p>
+                To build intuition for this definition, it helps to see it as a generalization of continuity from real analysis. Recall the \(\epsilon\)-\(\delta\) definition of continuity (see <a href="https://proofwiki.org/wiki/Metric_Space_Continuity_by_Epsilon-Delta">here</a>). In that context, we use open balls to define continuity: a function is continuous if, for every open ball in the codomain, its preimage in the domain is also an open ball. In topology, we replace open balls with open sets because, in general, we do not have a metric to define open balls. This broader definition allows us to study continuity in spaces beyond metric spaces.
+            </p>
+
+            <p>
+                <b>Definition (Homeomorphism)</b> A function \(f: T_1 \rightarrow T_2\) is a homeomorphism if it is bijective and both \(f\) and its inverse \(f^{-1}\) are continuous. 
+            </p>
+            
+            <p>
+                A homeomorphism provides a way to say that two topological spaces are essentially the same, or "topologically equivalent." Each element in one space corresponds to a unique element in the other, and the structure of the spaces---specifically, their open sets---is preserved under the mapping.
+            </p>
+
+            <p>
+                <b>Definition (Locally Euclidean)</b> A topological space \(T\) is locally Euclidean if, for each point \(x \in T\), there exists an open set \(U\) containing \(x\) such that \(U\) is homeomorphic to an open subset of \(\mathbb{R}^n\). 
+            </p>
+            
+            <p>
+                A locally Euclidean topological space is simply a space in which every point has an open set around it that is topologically equivalent to an open subset of Euclidean space.
+            </p>
+            
+            <p>
+                <b>Definition (Hausdorff Space)</b> A topological space \(T\) is a Hausdorff space if, for every pair of distinct points \(x, y \in T\), there exist disjoint open sets \(U\) and \(V\) such that \(x \in U\) and \(y \in V\).
+            </p>
+            
+            <p>
+                The Hausdorff property ensures that any two distinct points can be separated by disjoint open sets, which intuitively means we can distinguish between points through the "lens" of open sets.
+            </p>
+            
+            <p>
+                <b>Definition (Basis)</b> A basis for a topological space \(T\) is a collection \(\mathcal{B}\) of open sets such that every open set in \(T\) can be written as a union of sets from \(\mathcal{B}\).
+            </p>
+            
+            <p>
+                You can think of a basis for a topology as a collection that generates the topology via unions. In particular, a basis is called a <b>countable basis</b> if it is countable. If a topology has a countable basis, it is referred to as a <b>second-countable space</b>. Why "second"? There is also a concept of "first-countable," but we won’t need it.
+            </p>
+
+
+
+            <p>
+                <b>Definition (Topological Manifold)</b> A manifold \(\mathcal{M}\) is a topological space \((X, \mathcal{T})\) that is Hausdorff, second-countable, and locally Euclidean. 
+            </p>
+            
+            <p>
+                As you can see, manifolds are objects that share many properties with Euclidean spaces. For example, through the lens of open sets, we can always distinguish any two points. Additionally, we have a countable basis of open sets. Locally, we can also map the manifold to a Euclidean space.
+            </p>
+            
+            <p>
+                More intuitively, you can think of a manifold as an object embedded in a Euclidean space. For example, imagine a circle of radius 1 in the Euclidean plane. You are looking at a 1-dimensional manifold. Why 1-dimensional? Because you can describe every point on the circle with a single parameter: the angle. Or think of a hollow sphere. You are looking at a 2-dimensional manifold. Why 2-dimensional? Because you can describe every point on the sphere with two parameters: latitude and longitude. This means you can map the circle to a line and the sphere to a plane.
+            </p>
+
+            <p>
+                To me, this is a useful intuition. However, it is important to remember that manifolds are not necessarily embedded in a Euclidean space. And the definition of a manifold is more general than this intuition.
+            </p>
+
+
+            <p>
+                <b>Definition (Monoid)</b> Before introducing the concept of a dynamical system, we need to define one more basic concept: a monoid. A monoid is a set \(X\) equipped with an associative binary operation and an identity element. 
+            </p>
+            
+            <p>
+                For our purposes, this is simply a set with the addition operation. For example, the sets \((\mathbb{Z}, +)\) or \((\mathbb{R}, +)\) are both examples of monoids.
+            </p>
+
+
+            <h3> Dynamical System </h3>
+
+            <p>
+                Now that we have covered all this material, I must confess that it wasn't strictly necessary. You could obtain the same results with a much simpler definition. However, we would lose the generality that the following definition provides. Ultimately, we won't need all this structure, but it served as an opportunity to refresh some concepts from topology.
+            </p>
+            
+            <p>
+                <b>Definition (Flow)</b> A flow on a manifold \(\mathcal{M}\) and a monoid \(T\) is a function \(\phi: T \times \mathcal{M} \rightarrow \mathcal{M}\) such that: 
+                <ol>
+                    <li> \(\forall x \in \mathcal{M}\), \(\phi(0, x) = x\), and</li>
+                    <li> \(\forall x \in \mathcal{M}\), \(\phi(t, \phi(s, x)) = \phi(t+s, x)\).</li>
+                </ol>
+            </p>
+
+
+
+            <p>
+                <b>Definition (Dynamical System)</b> A dynamical system is a triplet \((T, \mathcal{M}, f)\), where \(T\) is a monoid, \(\mathcal{M}\) is a manifold, and \(f: T \times \mathcal{M} \rightarrow \mathcal{M}\) is a flow on \(\mathcal{M}\) and \(T\).
+            </p>
+            
+            <p>
+                Intuitively, \(T\) represents time. If time does not progress, the system does not evolve either, which is why we have the condition \(f(x, 0) = x\) for the evolution function \(f\). Furthermore, the system evolves continuously, so we require \(f(f(x, t_1), t_2) = f(x, t_1 + t_2)\). This condition ensures that it doesn't matter whether we evolve the system in one large step (\(t_1 + t_2\)) or in two smaller steps (\(t_1\) and \(t_2\)). Finally, \(\mathcal{M}\) represents the state space, the set of all possible states the system can occupy.
+            </p>
+
+
+
+            <h4>Example 1</h4>
+            <p>
+                Let us consider a simple example of a continuous-time 1-dimensional dynamical system. The time monoid is \((\mathbb{R}, +)\), and the state space is the real line \(\mathbb{R}\). The function \(f\) is defined by the update rule:
+                \[
+                    f(x, t) = x + t
+                \]
+            </p>
+                            
+            <p>
+                Note that \(f(x, 0) = x\) and \(f(f(x, t_1), t_2) = f(x + t_1, t_2) = x + t_1 + t_2 = f(x, t_1 + t_2)\). This confirms that the update function is properly defined. Next, we know that the real line \(\mathbb{R}\) is a manifold (it is locally Euclidean, second-countable, and Hausdorff). Also, \((\mathbb{R}, +)\) is clearly a monoid. Therefore, we have a dynamical system.
+            </p>
+
+            <h4> Example 2 </h4>
+            <p>
+            Let us see a second example. Consider the manifold \(\mathbb{S}^1=\{(x,y)\in\mathbb{R}^2|x^2+y^2=1\}\) (the unit circle) and the monoid \((\mathbb{R},+)\). The update function is given by: 
+            \[
+            f((x,y),t) = \begin{bmatrix} \cos(t\theta) & -\sin(t\theta) \\ \sin(t\theta) & \cos(t\theta) \end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix}
+            \]
+            </p>
+
+            <p>
+            Here, \(\theta\) is a fixed angle of choice. Note that, \(f((x,y),0) = (x,y)\). We also that that:
+            \[
+            \small{\begin{aligned}
+
+            f(f((x,y),t_1),t_2) &= \begin{bmatrix} \cos(t_1\theta) & -\sin(t_1\theta) \\ \sin(t_1\theta) & \cos(t_1\theta) \end{bmatrix} \begin{bmatrix} \cos(t_2\theta) & -\sin(t_2\theta) \\ \sin(t_2\theta) & \cos(t_2\theta) \end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix} \\
+                                &= \begin{bmatrix} \cos(t_1\theta)\cos(t_2\theta) - \sin(t_1\theta)\sin(t_2\theta) & -\cos(t_1\theta)\sin(t_2\theta) - \sin(t_1\theta)\cos(t_2\theta) \\ \sin(t_1\theta)\cos(t_2\theta) + \cos(t_1\theta)\sin(t_2\theta) & - \sin(t_1\theta)\sin(t_2\theta) + \cos(t_1\theta)\cos(t_2\theta) \end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix} \\
+                                &= \begin{bmatrix} \cos((t_1+t_2)\theta) & -\sin((t_1+t_2)\theta) \\ \sin((t_1+t_2)\theta) & \cos((t_1+t_2)\theta)\end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix} = f((x,y),t_1+t_2)
+            \end{aligned}}
+            \]
+
+            So, the evolution function is proper. We also know that our choice of time is proper. We need only to show that the unit circle is a manifold. But you will have to trust me on this one.
+            </p>
+
+            <p>
+            Now that you arrived to this point, you deserve an animation of this simple dynamical system
+            </p>
+
+            <div id="canvas-container-circle" xscale=15 yscale=10 xshift=0 yshift=100 width=700 height=150></div>
+
+            <p>
+            Ok, this is not as impressive as the animation at the start of the page. But, it describes fairly well what's going on.
+            </p>
+
+
+
+            <h3>Autonomous and Non-Autonomous Systems</h3>
+            
+            <p>
+                Now that we have a good understanding of what a dynamical system is, it's important to note that we rarely describe these systems as we did previously, using an update function. More often, we use a set of equations to describe the system's evolution. These equations can be categorized into two main types: <b>autonomous</b> and <b>non-autonomous</b> systems.
+            </p>
+            
+            <p>
+                Autonomous systems are systems whose evolution does not depend on time to determine the next state. For example, \(g(x) = 2x\) is an autonomous system. In contrast, \(g(x, t) = 2x + t\) is a non-autonomous system because it explicitly depends on time. Notice that, as written, these are not dynamical systems since the properties of the flow are not satisfied. However, we can easily transform these equations into a dynamical system.
+            </p>
+
+            
+            <p>
+                For the autonomous system, we can define the dynamical system \((\mathbb{N}, +), \mathbb{R}, (x, t \mapsto g^t(x)))\), where \(g^t\) is the \(t\)-th iteration of the function \(g\). Since this autonomous system is particularly simple, we can even express the update function as \(f(x, t) = 2^t x\). We can easily verify that \(f(x, 0) = 2^0 x = x\) and \(f(f(x, t_1), t_2) = f(2^{t_1} x, t_2) = 2^{t_1 + t_2} x = f(x, t_1 + t_2)\). Therefore, we have a valid dynamical system.
+            </p>
+
+            <p>
+            For the non-autonomous system, the situation is a bit more complicated. We cannot use the system's time directly since we would break flow's assumptions. We need to introduce a new variable to represent time. So, suppose we have a non autonomous system \(x,t \mapsto g(x,t),t+1\). Applying the system \(\tau\) times means 
+            \[
+            \begin{align}
+            x,t &\mapsto g(x,t),t+1 \\
+            &\mapsto g(g(x,t),t+1),t+2 \mapsto \\
+            &\dots \\
+            &\mapsto g(g(\dots g(x,t), \dots),t+\tau-1),t+\tau
+            \end{align}
+            \] 
+            So how, the system advances depends on both the initial state \(x\) and time \(t\). And the advancement is ticked by \(\tau\). So, let us define the dynamical system 
+            \[\left((\mathbb{N}, +), \mathbb{R}^2, (x, t, \tau \overset{f}{\longmapsto} g^\tau(x, t)), \tau + t\right)\]
+            </p>
+
+            <p>
+            When \(\tau=0\), we have that \(f(x,t,\tau) = x,t\), and when we evolve the system by \(\tau_1\) at the first step, and by \(\tau_2\) at the second step, we have:
+            \[
+            \begin{aligned}
+            x,t,\tau_1 &\mapsto g^{\tau_1}(x,t),t+\tau_1 \\
+            g^{\tau_1}(x,t),t+\tau_1,\tau_2&\mapsto g^{\tau_2}(g^{\tau_1}(x,t),t+\tau_1),t+\tau_1+\tau_2 \\
+            &= g^{\tau_1+\tau_2}(x,t),t+\tau_1+\tau_2
+            \end{aligned}
+            \]
+            </p>
+
+            <p>
+            </p>
+
+            <p>
+                The method of iterating the function is quite simple, but it only works for dynamical systems with discrete time. To model a dynamical system with continuous time, we need to specify our equations differently. Instead of specifying the next state, we describe the velocity vector of the state. This can be done using differential equations. The dynamical system arises from the solution to an Initial Value Problem (IVP):
+                \[
+                \frac{dx(t)}{dt} = F(x(t)), \quad x(0) = x_0
+                \]
+            </p>
+
+            <p>
+                Let's suppose our manifold is \(\mathbb{R}\). We want the velocity vector to be proportional to the state. More precisely, if the state at time \(t\) is \(x(t)\), we want the velocity vector to be \(2x(t)\). In other words, we are saying that:
+                \[
+                    \frac{dx(t)}{dt} = 2x(t)
+                \]
+            </p>
+
+
+            <p>
+            To get our dynamical system, we need to solve the initial value problem. Let's get to it:
+                \[
+                \begin{aligned}
+                    \frac{dx(t)}{dt} &= 2x(t) \\
+                    \int \frac{1}{x(t)}dx(t) &= \int 2dt \\
+                    \ln|x(t)| &= 2t + C \\
+                    x(t) &= e^{2t+C} \\
+                    \implies x(0) &= e^C
+                    \implies C = \ln(x(0)) = \ln(x_0) \\
+                    \implies x(t) &= e^{2t + \ln(x_0)} = x_0e^{2t}
+                \end{aligned}
+                \] 
+            </p>
+
+
+            <p>
+                Now, we have a solution that describes how the state space evolves over time. Our dynamical system becomes \( ((\mathbb{R},+), \mathbb{R}, (x,t \mapsto xe^{2t})) \). Let us verify that \(f\) is a proper flow. We have that \(f(x,0) = xe^{2 \cdot 0} = x\), and \(f(f(x,t_1),t_2) = f(xe^{2t_1}, t_2) = x e^{2t_1}e^{2t_2} = x e^{2(t_1+t_2)} = f(x, t_1 + t_2)\). Thus, we have a proper dynamical system.
+            </p>
+            
+            <p>
+                Now, let us verify that both the dynamical system and the autonomous system behave the same. We can do this by plotting the evolution of the system over time. Below, I have plotted the evolution of the autonomous system and the induced dynamical system for a variety of initializations (on the x-axis, you see time, and on the y-axis, you can see the state space).
+            </p>
+
+
+            <canvas id="autonomous" width="350" height="200"></canvas>
+            <canvas id="flow"       width="350" height="200"></canvas>
+
+            <p>
+                The situation with non-autonomous systems is a bit more complicated, but we follow a similar procedure as before. Specifically, we solve an initial value problem given by:
+                \[
+                \frac{dx(t)}{dt} = F(x,t), \quad x(t_0) = x_0
+                \]
+            </p>
+            
+            <p>
+                The only difference lies in the initial condition. Let us consider an example. Suppose we have the differential equation:
+                \[
+                \frac{dx(t)}{dt} = 2x(t) + t
+                \]
+            </p>
+            
+            <p>
+                The solution to this differential equation is a bit more complicated, so I will provide only the solution:
+                \[
+                x(t) = Ce^{2t} - \frac{t}{2} - \frac{1}{4}
+                \]
+            </p>
+
+            <p>
+                Now, using the initial condition, we have:
+                \[
+                x(t_0) = Ce^{2t_0} - \frac{t_0}{2} - \frac{1}{4} = x_0 \implies \\
+                C = \frac{x_0 + \frac{t_0}{2} + \frac{1}{4}}{e^{2t_0}} \implies \\
+                x(t) = \left( x_0 + \frac{t_0}{2} + \frac{1}{4} \right)e^{2(t-t_0)} - \frac{t}{2} - \frac{1}{4}
+                \]
+            </p>
+
+            <p>
+                Our dynamical system becomes:
+                \[
+                \left((\mathbb{R},+),\mathbb{R},\left(x,\tau,t \mapsto \left( x + \frac{\tau}{2} + \frac{1}{4} \right)e^{2(t-\tau)} - \frac{t}{2} - \frac{1}{4}\right),\tau+t \right)
+                \]
+                Where \(t\) is the time, \(\tau\) is the starting time, and \(x\) is the initial state. This is not a dynamical system in the strict sense (This is because the properties of the flow for \(t\) are not met). However, if we shift the time to start at \(\tau\) (the initial time), instead of \(0\), we will have a proper dynamical system. So let us verify that the following update function is proper:
+                \[
+                x,\tau,t \mapsto \left( x + \frac{\tau}{2} + \frac{1}{4} \right)e^{2t} - \frac{t+\tau}{2} - \frac{1}{4},\quad \tau+t
+            \]
+            </p>
+
+            <p>
+                When \(t=0\), we have: 
+                \[
+                \left( x + \frac{\tau}{2} + \frac{1}{4} \right)e^{0} - \frac{\tau}{2} - \frac{1}{4} = x + \frac{\tau}{2} + \frac{1}{4} - \frac{\tau}{2} - \frac{1}{4} = x
+                \]
+            </p>
+
+            <p>
+            When we evolve the system by \(t_1\) at the first step. This will evolve both the state space \(x\) and the initial time \(\tau\). Finally, we evolve by \(t_2\), we have:
+            \[
+                \small{\begin{aligned}
+                x,\tau+t_1,t_2 &\mapsto \left( \left( x + \frac{\tau}{2} + \frac{1}{4} \right)e^{2t_1} - \frac{\tau+t_1}{2} - \frac{1}{4} + \frac{\tau+t_1}{2} + \frac{1}{4} \right)e^{2t_2} - \frac{\tau+t_1+t_2}{2} - \frac{1}{4} ,& \tau+t_1+t_2 \\
+                x,\tau,t_1+t_2 &\mapsto \left( x + \frac{\tau}{2} + \frac{1}{4} \right)e^{2(t_1+t_2)} - \frac{\tau+t_1+t_2}{2} - \frac{1}{4} ,& \tau+t_1+t_2
+                \end{aligned}}
+            \]
+            You can check by yourself that the last two maps are indeed the same, and thus, this is a proper flow.
+            </p>
+
+            <p>
+                This was a lot of work. Do we need to check every time if the solution to the initial value problem is a proper dynamical system? To answer this, let us consider a general example. Suppose we have a non-autonomous system with the initial value problem:
+                \[
+                \frac{dx(t)}{dt} = F(x,t), \quad x(t_0) = x_0
+                \]
+            </p>
+            
+            <p>
+                The solution to the initial value problem is given by a function \(f(x_0,t_0,t)\), which maps the initial state \(x_0\) and the initial time \(t_0\) to the state at time \(t\). Then, we have that \(f(x_0,t_0,0) = x_0\). Additionally, we can verify that:
+                \[
+                f(f(x_0,t_0,t_1),t_2) = f(f(x_0,t_0+t_1,0),t_2) = f(x_0,t_0+t_1,t_2) = f(x_0,t_0,t_1+t_2)
+                \]
+                This shows that the solution to a generic initial value problem is a proper dynamical system. You can verify for yourself that this is also true for an autonomous system. Of course, the non-autonomous (or autonomous) system may not always have a solution to the initial value problem. However, if it does have a solution, then it forms a proper dynamical system.
+            </p>
+
+
+
+            <h4> Summary & a Cautionary Note </h4>
+            
+            <p>
+                In this post, we discussed the basic concepts of topology and used these definitions to define a dynamical system, even outside classical Euclidean spaces. We then explored how these systems can be described using autonomous and non-autonomous systems of equations for both discrete and continuous time.
+            </p>
+            
+            <p>
+                Lastly, I want to remind you that I am not an expert on the subject, but rather a student. So, mistakes are to be expected.
+            </p>
+
+
+        <div class="bibliography"></div>
+        <div id="footer"></div>
+ 
+        <script src="../../scripts/toggle-theme.js"></script>
+        <script src="../../scripts/load-header.js"></script>
+        <script src="../../scripts/load-footer.js"></script>
+        <script src="../../scripts/load-cits.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/p5.js"></script>
+        <script src="animations.js"></script>
+
+    </body>
+
+</html>
