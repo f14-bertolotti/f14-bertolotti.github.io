@@ -14,7 +14,8 @@ function toggleTheme() {
     tangentspace();
     example();
     derivative();
-    stability();
+    discrete();
+    slope();
 }
 
 function project3DPointTo2D(x, y, z) {
@@ -122,7 +123,7 @@ class Rossler {
         this.dt = 0.01;
         this.startOpacity = 0.7;
         this.aliveTrajectories = new Array(10).fill([]).map(() => [{
-            x : Math.random() * 10 - 5,
+            x : 0,
             y : Math.random() * 10 - 5, 
             z : Math.random() * 10 - 5, 
         }]);
@@ -187,14 +188,14 @@ const lorenzAnimation = (p) => {
         p.background(0);
         p.clear();
     
-        lorenz.dyingOpacities = lorenz.dyingOpacities.map((opacity) => p.max(0,opacity - .0001));
+        lorenz.dyingOpacities = lorenz.dyingOpacities.map((opacity) => p.max(0,opacity - .002));
     
         // remove dead trajectories
         lorenz.dyingTrajectories = lorenz.dyingTrajectories.filter((traj, i) => lorenz.dyingOpacities[i] > 0);
         lorenz.dyingOpacities = lorenz.dyingOpacities.filter((opacity) => opacity > 0);
         
         // reset a random trajectory
-        if (Math.random() < 0.05) {
+        if (Math.random() < 0.075) {
             // select random trajectory
             let trajectoryIndex = Math.floor(Math.random() * lorenz.aliveTrajectories.length);
             // move the trajectory to the dyingTrajectories
@@ -202,7 +203,7 @@ const lorenzAnimation = (p) => {
             lorenz.dyingOpacities.push(.7);
             // reset trajectory
             lorenz.aliveTrajectories[trajectoryIndex] = [{
-                x : Math.random() * 4 - 2, 
+                x : 0, 
                 y : Math.random() * 4 - 2, 
                 z : Math.random() * 4 - 2
             }];
@@ -698,8 +699,8 @@ function derivative() {
 
 }
 
-function stability() {
-    const canvas = document.getElementById("stability");
+function discrete() {
+    const canvas = document.getElementById("discrete");
     const ctx = canvas.getContext("2d");
 
     let color = getColor();
@@ -708,38 +709,191 @@ function stability() {
     ctx.lineWidth = 1.5;
 
     // define curve
-    let curve = (x,t) => {return x/(x+(1-x)*Math.exp(-t))};
+    let curve = (x) => {return 2*x*(1-x)};
+    let lin   = (x) => {return x};
 
     // for some initializations
     
-    for (const x of [0, 0.33, 0.66, 1, 1.5, 2, 3, 5]) {
-        // get points on curve
-        let points = []
-        for (let t = 0; t <= 10; t+=0.05) {
-            points.push({t:t,x:curve(x,t)});
-        }
-
-        // scale and shift
-        points = points.map((point) => {
-            return {
-                t: point.t * 100,
-                x: -point.x*30 + 180 
-            };
-        });
-
-        // plot curve
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].t, points[i].x);
-        }
-        ctx.stroke();
+    // get points on curve
+    let points = []
+    let points2 = []
+    for (let x = -1; x <= 1.5; x+=0.02) {
+        points.push({x:x,y:curve(x)});
+        points2.push({x:x,y:lin(x)});
     }
 
-    // 0 text
+    // scale and shift
+    let scalex = 200;
+    let scaley = 150;
+    let shiftx = 75;
+    let shifty = 100;
+    points = points.map((point) => {
+        return {
+            x: point.x*scalex + shiftx,
+            y: -point.y*scaley + shifty 
+        };
+    });
+    points2 = points2.map((point) => {
+        return {
+            x: point.x*scalex + shiftx,
+            y: -point.y*scaley + shifty
+        };
+    });
+
+    // draw x axis
+    ctx.beginPath();
+    ctx.moveTo(0, 199);
+    ctx.lineTo(350, 199);
+    ctx.stroke();
+
+    // drwa x axis tip
+    ctx.beginPath();
+    ctx.moveTo(350, 199);
+    ctx.lineTo(340, 194);
+    ctx.stroke();
+
+    // draw y axis
+    ctx.beginPath();
+    ctx.moveTo(1, 0);
+    ctx.lineTo(1, 200);
+    ctx.stroke();
+
+    // draw y axis tip
+    ctx.beginPath();
+    ctx.moveTo(1, 0);
+    ctx.lineTo(6, 10);
+    ctx.stroke();
+
+    // plot curve
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+    }
+    ctx.stroke();
+
+    // plot curve
+    ctx.beginPath();
+    ctx.moveTo(points2[0].x, points2[0].y);
+    for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points2[i].x, points2[i].y);
+    }
+    ctx.stroke();
+
+}
+
+function slope() {
+    const canvas = document.getElementById("slope");
+    const ctx = canvas.getContext("2d");
+
+    let color = getColor();
+    ctx.strokeStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.7)`;
+    ctx.lineWidth = 1.5;
+
+    // define curve
+    let curve = (x) => {return 2*x*(1-x)};
+    let lin   = (x) => {return 2*x};
+
+    // get points on curve
+    let points = []
+    let points2 = []
+    for (let x = -1; x <= 1.5; x+=0.02) {
+        points.push({x:x,y:curve(x)});
+        points2.push({x:x,y:lin(x)});
+    }
+    // scale and shift
+    let scalex = 200;
+    let scaley = 150;
+    let shiftx = 75;
+    let shifty = 100;
+
+    // draw x axis
+    ctx.beginPath();
+    ctx.moveTo(0, 199);
+    ctx.lineTo(350, 199);
+    ctx.stroke();
+
+    // drwa x axis tip
+    ctx.beginPath();
+    ctx.moveTo(350, 199);
+    ctx.lineTo(340, 194);
+    ctx.stroke();
+
+    // draw y axis
+    ctx.beginPath();
+    ctx.moveTo(1, 0);
+    ctx.lineTo(1, 200);
+    ctx.stroke();
+
+    // draw y axis tip
+    ctx.beginPath();
+    ctx.moveTo(1, 0);
+    ctx.lineTo(6, 10);
+    ctx.stroke();
+
+    points = points.map((point) => {
+        return {
+            x: point.x*scalex + shiftx,
+            y: -point.y*scaley + shifty 
+        };
+    });
+    points2 = points2.map((point) => {
+        return {
+            x: point.x*scalex + shiftx,
+            y: -point.y*scaley + shifty
+        };
+    });
+    console.log(points)
+
+    // plot curve
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+    }
+    ctx.stroke();
+
+    // plot curve
+    ctx.beginPath();
+    ctx.moveTo(points2[0].x, points2[0].y);
+    for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points2[i].x, points2[i].y);
+    }
+    ctx.stroke();
+
+    // draw dashed veritical line at x = 0
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(75, 200);
+    ctx.lineTo(75, curve(0)*scaley + shifty);
+    ctx.stroke();
+
+    // draw dashed horizontal line at y = f(0)
+    ctx.beginPath();
+    ctx.moveTo(0, curve(0)*scaley + shifty);
+    ctx.lineTo(75, curve(0)*scaley + shifty);
+    ctx.stroke();
+
+    // draw dashed vertival line at x = 0 + dx
+    ctx.beginPath();
+    ctx.moveTo(100, 200);
+    ctx.lineTo(100, curve(1.12)*scaley + shifty);
+    ctx.stroke();
+    
+    // draw dashed horizontal line at y = f(0 + dx)
+    ctx.beginPath();
+    ctx.moveTo(0, curve(1.12)*scaley + shifty);
+    ctx.lineTo(100, curve(1.12)*scaley + shifty);
+    ctx.stroke();
+
+    // text dx
     ctx.font = "16px Latin Modern Math";
-    ctx.fillText("0", 335, 200-25);
-    ctx.fillText("1", 335, 170-25);
+    ctx.fillText("dx", 78, 190);
+
+    // text dy
+    ctx.font = "16px Latin Modern Math";
+    ctx.fillText("dy", 10, 85);
 
 }
 
@@ -751,4 +905,5 @@ curve2d();
 tangentspace();
 example();
 derivative();
-stability();
+discrete();
+slope();

@@ -221,40 +221,36 @@
             The most advanced readers may complain regarding the chart dependant definition of the derivative. They may argue that the derivative should be defined in such a way that it does not depend on the charts. This is possible, however, it requires a level of abstraction that it is not needed for this post.
             </p>
 
-            <h2> Fixed Points and their Stability </h2>
+            <h3> Stability In Discrete Dynamics</h3>
 
             <p>
-            Now that we have a good understanding of differentiable manifolds, and how differentiation is performed on these objects. We can return to the concept of fixed points. Firstly, we will build our intuition on the 1-dimensional case with a simple example. Consider the autonomous system \(\frac{dx}{dt}=f(x)=x(x-1)\). Recall, that \(f(x)\) is the velocity vector of the system at each point \(x\). To find the fixed point we need only to solve the equation \(f(x)=0\). This is a simple quadratic equation, and we find that the fixed points are \(x=0\) and \(x=1\). We can easily double check that \(f(0)=0\) and \(f(1)=0\).
+            Now that we have a good understanding of differentiable manifolds, and how differentiation is performed on these objects. We can return to the concept of fixed points. Firstly, we will build our intuition on the 1-dimensional discrete case with a simple example. Consider the autonomous system \(x_{n+1}=2x_n(1-x_n)\). To find the fixed point we need only we need simply to solve the equation \(x=2x(1-x)\). This gives us the fixed points \(x=0\) and \(x=1/2\). We can plot \(y=2x(1-x)\) alongside with \(y=x\) to have a good picture of what is going on.
             </p>
 
+            <canvas id="discrete" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
             <p>
-            Let us also find the flow map associated with this system. This can be done by solving the initial value problem associated with \(\frac{dx}{dt}=x(x-1)\) and \(x(0)=x_0\). This is a separable equation, and we can solve it by partial fractions. We get:
+            We can see that where the line \(y=x\) intersects \(y=2x(1-x)\) is where the fixed points are. The main difference in these two points is the slope. The first fixed point, in correspondence with the origin, has a slope of \(1\). The second fixed point, in correspondence with \(1/2\), has a slope of \(0\). This can be easily verified with:
             \[
-            \begin{aligned}
-            \int \frac{dx(t)}{x(t)(x(t)-1)} &= \int dt \\
-            \ln|1-x(t)| - \ln|x(t)| &= t + C \\
-            x(t) &= \frac{1}{1+e^{(t+C)}} \\
-            \implies x(0) &= \frac{1}{1+e^C} \implies C = \ln\left(\frac{1}{x_0} - 1\right) \\
-            \implies x(t) &= \frac{1}{1+\frac{1}{x_0-1}e^t} = \frac{x_0}{x_0 + (1-x_0)e^t}
-            \end{aligned}
+            \frac{d 2x(1-x)}{dx}\Bigg|_{x=0} = 2-4x\Bigg|_{x=0}=2, \quad\text{and}\quad \frac{d 2x(1-x)}{dx}\Bigg|_{x=1/2} = 2-4x\Bigg|_{x=1/2}=0.
             \]
             </p>
 
             <p>
-            Our dynamical system is 
-            \[\left((\mathbb{R_+},+),\mathbb{R},\left(x,t \overset{f}{\longmapsto} \frac{x}{x + (1-x)e^t}\right)\right)\] 
-            You can check for yourselves that this is a proper dynamical system. 
+            Let us think carefully to what it means to have a slope of \(2\). A function with a slope of \(2\) at a point \(x\) means that if we start at a point \(x\) and we move a little bit far away from \(x\), say of \(dx\), we will move twice as much in the vertical direction, that is dy=2dx. This is pictured in the figure below.
+            </p>
+
+            <canvas id="slope" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            Now guess what happens if the slope is less than \(1\), say \(1/2\), at a point \(x\). If we start far from \(x\), say of \(dx\), we will move half as much in the vertical direction, that is dy=1/2dx.
             </p>
 
             <p>
-            We can see that, where the velocity was zero, \(x=0\) and \(x=1\), the flow map is constant. Let us plot the flow map for this system. 
+            If we throw in the fact that, for a fixed point, \(f(x)=x\), then you can easily see that if \(|f'(x)|>1\) we move far away from the fixed point, and if \(|f'(x)|<1\) we move closer to the fixed point. Thus, we have a source and sink respectively.
             </p>
 
-            <canvas id="stability" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
 
-            <p>
-            It also fairly easy guess the stability of these points. We can see that \(1\) is a sink, since close enough trajectories will converge to it. We can also see that \(0\) is a source, since close enough trajectories will diverge from it. 
-            </p>
         </div>
 
         <div class="bibliography"></div>
