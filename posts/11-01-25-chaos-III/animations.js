@@ -8,10 +8,15 @@ function toggleTheme() {
     } else if (document.getElementById("theme-icon").src.endsWith("icons/sun.svg")) {
         document.getElementById("theme-icon").src = folder +"/"+ "icons/moon.svg";
     }
+    sink();
+    source();
     curve2d();
     tangentspace();
     example();
     derivative();
+    discrete();
+    slope();
+    sadle();
 }
 
 function project3DPointTo2D(x, y, z) {
@@ -519,7 +524,7 @@ function example() {
 
     // draw let-to-right arrow
     ctx.beginPath();
-    ctx.moveTo(220, y-400);
+    ctx.moveTo(170, y-400);
     ctx.lineTo(410, y-400);
     ctx.stroke();
 
@@ -531,7 +536,7 @@ function example() {
 
     // f text
     ctx.font = "20px Latin Modern Math";
-    ctx.fillText("𝑓", 320, y-410);
+    ctx.fillText("𝑓", 280, y-410);
 
     // top-to-bottom (left) arrow
     let dy = -20
@@ -917,7 +922,12 @@ function sadle() {
 }
 
 new p5(lorenzAnimation);
+source();
+sink();
 curve2d();
 tangentspace();
 example();
 derivative();
+discrete();
+slope();
+sadle();

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../../style.css">
+        <link rel="stylesheet" href="../../post.css">
+        <link rel="stylesheet" href="../../code.css">
+
+        <title>Disarray</title>
+
+    </head>
+    
+    <body>
+
+        <div id="root-folder" value="../../"></div>
+
+        <div id="header"></div>
+
+        <div class="post-body">
+            <h1> Chaos Theory with Differential Topology (Part III) </h1>
+            <div id="canvas-container-lorenz" xscale=2.4 yscale=2 xshift=0 yshift=+20 width=700 height=300></div>
+            <h3> Fixed Points and their Stability </h3>
+
+            <p>
+            The stability of fixed points is one of the most important concepts in chaos theory. It allows us to understand how the system behaves around a fixed point. So, let's start by defining what a fixed point is.
+            </p>
+
+            <p>
+            <b> Definition (Fixed Point) </b> A fixed point of a dynamical system \((T,\mathcal{M},f)\) is a point \(x \in \mathcal{M}\) such that \(f(x,t)=x\) for all \(t \in T\).
+            </p>
+
+            <p>
+            In other words, a fixed point is a point that does not change over time. It is a point that is invariant under the evolution of the system. For example, if we are modelling the evolution of a population over time, a fixed point would certainly be \(0\) as no new individuals are born or die, regardless oftime.
+            </p>
+
+            <p>
+            <b> Definition (Sink) </b> A fixed point \(x\) is a sink if there is a neighborhood \(U\) of \(x\) such that for any point \(y \in U\), \(\lim_{t\rightarrow \infty} f(y,t) = x\)
+            </p>
+
+            <p>
+            This is pretty simple. We are saying that if we start close enough to the fixed point and evolve the system over time, we will get arbitrarly close to the fixed point. However, we need to be careful. If we treat time, \(T\) as a monoid, like before, we do not have a concept of limit to infinity. We need to more structure to make sense of this definition. So, for this section, we will consider \(T\) to be either \( \mathbb{N} \) or \( \mathbb{R} \). But you could use different structures to define the limit to infinity (for instance, an ordered monoid).
+            </p>
+
+            <p>
+            Here's an example of a vector field that has a sink at the origin.
+            </p>
+            
+            <canvas id="sink" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            <b> Definition (Source) </b> A fixed point \(x\) is a source if there is a neighborhood \(U\) of \(x\) such that for any point \(y \in U\setminus \{x\}\), \(\lim_{t\rightarrow \infty} f(y,t)\not \in U\)
+            </p>
+
+            <p>
+            This is the opposite of a sink. If we start close enough to the fixed point and evolve the system over time, we will eventually get out of the neighborhood of the fixed point.
+            </p>
+
+            <p>
+            Here's an example of a vector field that has a source at the origin.
+            </p>
+ 
+            <canvas id="source" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            Now, that we know what a sink and a source are, we concern ourselves on how these points can be classified. In other words, we want a reliable method to determine if a fixed point is a sink or a source. As it turns out, there is a very simple way to do this. We can look at the derivative of the system at the fixed point. But wait a minute, we never said that our manifold are differentiable. So, we will take a break from the dynamical system stuff to talk a little bit about differntiable manifolds.
+            </p>
+
+            <p>
+            Now, let us briefly consider a 2-dimensional discrete system. In this system, we can move in two directions. This means that alongside a direction we may get close to the fixed point and along side a different direction, we may get far from the fixed point. This is pictured in the figure below.
+            </p>
+
+            <canvas id="sadle" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            This is what we would call a sadle point. This is a sink in one direction and a source in another. However, an important difference wrt. sinks and sources is that sadle points can only happen in 2 or more dimensions. In 1-dimension, they do not exist.
+            </p>
+
+            <p>
+            <b> Definition (Saddle Point) </b> A fixed point \(x\) is a sadle point if there is a neighborhood \(U\) of \(x\) such that for any point \(y \in U\setminus \{x\}\), \(\lim_{t\rightarrow \infty} f(y,t)\not \in U\) and \(\lim_{t\rightarrow \infty} f(y,t) \in U\).
+            </p>
+
+           <h3> Stability In Discrete Dynamics</h3>
+
+            <p>
+            Now that we have a good understanding of differentiable manifolds, and how differentiation is performed on these objects. We can return to the concept of fixed points. Firstly, we will build our intuition on the 1-dimensional discrete case with a simple example. Consider the autonomous system \(x_{n+1}=2x_n(1-x_n)\). To find the fixed point we need only we need simply to solve the equation \(x=2x(1-x)\). This gives us the fixed points \(x=0\) and \(x=1/2\). We can plot \(y=2x(1-x)\) alongside with \(y=x\) to have a good picture of what is going on.
+            </p>
+
+            <canvas id="discrete" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            We can see that where the line \(y=x\) intersects \(y=2x(1-x)\) is where the fixed points are. The main difference in these two points is the slope. The first fixed point, in correspondence with the origin, has a slope of \(1\). The second fixed point, in correspondence with \(1/2\), has a slope of \(0\). This can be easily verified with:
+            \[
+            \frac{d 2x(1-x)}{dx}\Bigg|_{x=0} = 2-4x\Bigg|_{x=0}=2, \quad\text{and}\quad \frac{d 2x(1-x)}{dx}\Bigg|_{x=1/2} = 2-4x\Bigg|_{x=1/2}=0.
+            \]
+            </p>
+
+            <p>
+            Let us think carefully to what it means to have a slope of \(2\). A function with a slope of \(2\) at a point \(x\) means that if we start at a point \(x\) and we move a little bit far away from \(x\), say of \(dx\), we will move twice as much in the vertical direction, that is dy=2dx. This is pictured in the figure below.
+            </p>
+
+            <canvas id="slope" width="350" height="200" style="display: block; margin-left: auto; margin-right: auto;"></canvas>
+
+            <p>
+            Now guess what happens if the slope is less than \(1\), say \(1/2\), at a point \(x\). If we start far from \(x\), say of \(dx\), we will move half as much in the vertical direction, that is dy=1/2dx.
+            </p>
+
+            <p>
+            If we throw in the fact that, for a fixed point, \(f(x)=x\), then you can easily see that if \(|f'(x)|>1\) we move far away from the fixed point, and if \(|f'(x)|<1\) we move closer to the fixed point. Thus, we have a source and sink respectively.
+            </p>
+
+            <p>
+            A similar reasoning applies for the n-dimensional case. Suppose that \(x\) is a fixed point. Then, let as move a little bit away in the direction of \(x_i\) of, say \(dx_i\). Then, we will move of \(dy_{i,0}\) in the direction of \(x_0\), \(dy_{i,1}\) in the direction of \(x_1\), and so on. In the 1-dimensional case this movement was quantified by the derivative. With no surprise, in the n-dimensional case, this movement is quantified by the jacobian matrix. More generally, if we have a fixed point \(x\), and the jacobian matrix at \(x\) is \(J\), and we display \(x\) in the direction of \(h\), then we will have a displacement in the direction of \(Jh\).
+            </p>
+
+            <p>
+            Now, if any displament of a fixed point results in a displacement in the direction of the fixed point itself, then we have a sink. If any displacement of a fixed point results in a displacement away from the fixed point, then we have a source. 
+            </p>
+
+            <p>
+            <b> Theorem (Stability) </b> Let \(f:\mathbb{R}^n\rightarrow\mathbb{R}^n\) be a differentiable function. Let \(x\) be a fixed point of \(f\). If \(|f'(x)|<1\), then \(x\) is a sink. If \(|f'(x)|>1\), then \(x\) is a source.
+            </p>
+
+            <p>
+            <b> Proof </b>
+            
+            </p>
+
+
+
+        </div>
+
+        <div class="bibliography"></div>
+        <div id="footer"></div>
+ 
+        <script src="../../scripts/toggle-theme.js"></script>
+        <script src="../../scripts/load-header.js"></script>
+        <script src="../../scripts/load-footer.js"></script>
+        <script src="../../scripts/load-cits.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/p5.js"></script>
+        <script src="animations.js"></script>
+
+    </body>
+
+</html>
