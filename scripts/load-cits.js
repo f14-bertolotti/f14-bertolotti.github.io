@@ -130,6 +130,21 @@ const bibliography = {
         "author"  : "Alligood, Kathleen T and Sauer, Tim D and Yorke, James A and Chillingworth, David",
         "journal" : "SIAM Review",
         "year"    : "1998",
+    },
+
+    "Devlin19" : {
+        "title"   : "Bert: Pre-training of deep bidirectional transformers for language understanding",
+        "author"  : "Devlin, Jacob and Chang, Ming-Wei and Lee, Kenton and Toutanova, Kristina",
+        "journal" : "Proceedings of the 2019 conference of the North American chapter of the association for computational linguistics: human language technologies",
+        "year"    : "2019"
+    },
+
+    "Merity16" : {
+        "title" : "Pointer Sentinel Mixture Models",
+        "author" : "Stephen Merity and Caiming Xiong and James Bradbury and Richard Socher",
+        "journal" : "arXiv",
+        "year" : "2016"
     }
+
 
 }

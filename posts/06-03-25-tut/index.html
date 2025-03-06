@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../../style.css">
+        <link rel="stylesheet" href="../../post.css">
+        <link rel="stylesheet" href="../../code.css">
+
+        <title>Disarray</title>
+
+    </head>
+    
+    <body>
+        <div id="root-folder" value="../../"></div>
+
+        <div id="header"></div>
+
+        <div class="post-body">
+
+        <h1>  Mid-Training Untying: A Fix That Barely Fixes Anything. </h1>
+
+        <h3> Background </h3>
+
+        <p> Last year, I dedicated some time to study from a theoretical perspective the effect of weight tying <span class="cite" value="Press16"></span>. This is technique that involves using the same parameters for the embedding and unembedding layer. Empirically, this technique has two benefits: 1) It halve the memory necessary to store this usually big matrices, and 2) it boost performance early in training. </p>
+
+        <p> However, this technique is typically applied only to natural language models. Why is that? Well, for it to work properly, the data must have very specific properties—and natural language data largely satisfy these requirements. I recommend checking out the paper we wrote on this topic <span class="cite" value="Bertolotti24"></span>. You can also have a look to this <a href="file:///home/f14/Devel/f14-bertolotti.github.io//posts/26-09-24-icml-story/index.html">post</a> if you want a less technical discussion.</p>
+
+        <p> In summary, semantically similar tokens tend to cluster together in the embedding space, while tokens with similar conditional probabilities should be close in the unembedding space (and vice versa). If our data naturally align such that semantic similarity implies conditional similarity (and vice versa), then everything works smoothly, and training proceeds efficiently. This is because semantic and conditional information can reinforce each other.</p>
+
+        <p> However, if semantic similarity corresponds to conditional differences, we end up with tokens that want to be close in the embedding space but far apart in the unembedding space. I’ll leave it to you to imagine how that turns out. </p>
+
+        <p> While this data alignment occurs to some extent in natural language, it is not perfect. There are pairs of words that are semantically similar but appear in completely different distributions. For example, the words <b>begin</b> and <b>commence</b> have very similar meanings, but one is used in informal language while the other is more formal. This means we have a strong alignment, but not a perfect one. </p>
+
+        <h3> The Idea </h3>
+
+        <p> In my view, this suggests that weight tying can be highly beneficial early in training. However, later in training, it may introduce instabilities, as small misalignments in the data cannot be properly reflected in the embeddings. So, how do we get the best of both worlds? Well, we simply untie the embeddings mid-training. </p>
+
+        <h3>Results</h3>
+
+        <p> I started working on the code to test this hypothesis (<a href="https://github.com/f14-bertolotti/tut">repo</a> is public). I used a simple BERT-like architecture <span class="cite" value="Devlin19"></span> with a masked language modeling task. For the dataset, I chose Wikitext <span class="cite" value="Merity16"></span>, as it is not too large for a preliminary single-GPU run.  </p>
+        
+        <p>From there, it was a cycle of running training, fixing bugs, and repeating the process. However, at this point I am fairly convinced that this approach does not lead to substantial improvements—at least not results that are publishable. Here is what the validation accuracy looks like over 100 epochs of training.</p>
+        
+        <img src="acc.svg" width="350">
+        <img src="acc-zoomed.svg" width="350">
+        
+        <p>The second plot is a zoomed-in version of the first. The blue line represents training with tied embeddings from the start to the end of the 100th epoch. At step 100k, I untied the embedding matrices and allowed training to proceed, as shown by the orange plot.</p>
+        
+        <p>The untied model appears to be slightly more performant, but the improvement is so small that you really need to zoom in to notice it. What about the test set? On the test set at epoch 30, the untied model achieved an accuracy of \(0.5737\) compared to \(0.5724\) for the tied model. At epoch 100, the untied model achieved \(0.5867\) while the tied model achieved \(0.5869\). Essentially, there is no significant difference until you look at the third decimal place.</p>
+        
+        <p>I had sincerely expected a more pronounced improvement, or at least a greater difference between the two models. Additionally, if you zoom in on the x-axis, you can see that the untied model closely follows the tied one (see the plot below). I double-checked whether the two embedding matrices diverge, and I can confirm that they do during training. However, the overall behavior remains extremely similar even after 400k gradient steps.</p>
+        
+        <img src="acc-zoomed2.svg" width="350" style="display: block; margin: 0 auto;">
+        
+        <p>To me, this remains suspicious behavior that hints at a potential bug. However, every check I performed confirms that the run is legitimate.</p>
+        
+        <h3>Conclusion</h3>
+        
+        <p>What conclusions should we draw here? Firstly, tying or untying the embeddings mid-training does not seem to matter significantly. If you had a similar idea, I guess this might not be the best path to explore—at least not based on what I have observed so far. Additionally, it remains unclear why the untied model so closely mirrors the tied one.</p>
+
+        <p> This is a negative results. It is always a little bit disappointing to spend time on one of your idea that ends up not working. Fortunately, this was a simple idea and it was fairly easy to set up a small experiment to test it. So not that much time was wasted. This things are part of the game. </p>
+
+        <p>If you decide to continue from where I left off, please let me know—I would be curious to see what you discover.</p>
+
+
+        <div class="bibliography"></div>
+        <div id="footer"></div>
+        
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+              "HTML-CSS": {fonts: ['STIX-Web']},
+              SVG: {font: 'STIX-Web'},
+              TeX: {Augment: {
+                Definitions: {
+                  delimiter: {
+                    '\\llbracket': '27E6',
+                    '\\rrbracket': '27E7'
+                  }
+                }
+              }}
+            });
+        </script>
+        <script src="../../scripts/toggle-theme.js"></script>
+        <script src="../../scripts/load-header.js"></script>
+        <script src="../../scripts/load-footer.js"></script>
+        <script src="../../scripts/load-cits.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+
+</script>
+    </body>
+
+</html>
