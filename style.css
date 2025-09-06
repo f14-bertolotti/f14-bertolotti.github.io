@@ -137,11 +137,13 @@ p {
 ul {
     color: var(--text-color);
     text-align: justify;
+    font-size: var(--text-font-size);
 }
 
 ol {
     color: var(--text-color);
     text-align: justify;
+    font-size: var(--text-font-size);
 }
 
 a {

@@ -114,7 +114,7 @@ const bibliography = {
         "author"  : "Ofir Press and Lior Wolf",
         "journal" : "Conference of the European Chapter of the Association for Computational Linguistics",
         "year"    : "2016",
-        "url"     : "https://api.semanticscholar.org/CorpusID:836219",
+        "url"     : "api.semanticscholar.org/CorpusID:836219",
     },
 
     "Bertolotti24" : {
@@ -122,7 +122,7 @@ const bibliography = {
         "author"  : "Francesco Bertolotti and Walter Cazzola",
         "journal" : "International Conference on Machine Learning",
         "year"    : "2024",
-        "url"     : "https://api.semanticscholar.org/CorpusID:272330175"
+        "url"     : "api.semanticscholar.org/CorpusID:272330175"
     },
 
     "Alligood98" : {
@@ -140,11 +140,17 @@ const bibliography = {
     },
 
     "Merity16" : {
-        "title" : "Pointer Sentinel Mixture Models",
-        "author" : "Stephen Merity and Caiming Xiong and James Bradbury and Richard Socher",
-        "journal" : "arXiv",
-        "year" : "2016"
+        "title"   : "Pointer Sentinel Mixture Models",
+        "author"  : "Stephen Merity and Caiming Xiong and James Bradbury and Richard Socher",
+        "journal" : "arXiv preprint arXiv:1609.07843",
+        "year"    : "2016"
+    },
+
+    "Zhao23" : {
+        "title"   : "Pytorch fsdp: experiences on scaling fully sharded data parallel",
+        "author"  : "Zhao, Yanli and Gu, Andrew and Varma, Rohan and Luo, Liang and Huang, Chien-Chin and Xu, Min and Wright, Less and Shojanazeri, Hamid and Ott, Myle and Shleifer, Sam and others",
+        "journal" : "arXiv preprint arXiv:2304.11277",
+        "year"    : "2023",
+        "url"     : "arxiv.org/pdf/2304.11277"
     }
-
-
 }
