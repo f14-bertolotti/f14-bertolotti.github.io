@@ -19,26 +19,70 @@
         <div id="header"></div>
 
         <div class="post-body">
-            <h1> Torch Distributed Tutorial </h1>
+            <h1> A Torch Distributed Tutorial </h1>
             <div id="message-passing-container" xscale=1 yscale=1 xshift=0 yshift=0 width=700 height=300></div>
 
-            <h3> Preliminary </h3>
-            <p> Recently, I had access to a little more compute than I am used to work with. So this is the perfect occasion to start studying <a href="https://docs.pytorch.org/docs/stable/distributed.html">torch distributed</a>. However, bear in mind that these should be considered more as public cleaned-up study notes rather then a true tutorial. Further, the documentation and tutorials on this part of Pytorch are often lacking missing crucial details when you want to do a little more than the usual basic things. Nonetheless, If you find errors, information missing or you would like to add something. Please let me know, I'll find a way to attribute your contribution to this post. </p>
-
-            <p> My initial objective with Torch distributed (<code>torch.distributed</code>) was to finetune a small LLM such as <a href="https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct">Qwen2.5 instruct</a> on 4 gpus with tensor parallelism. This means that the model is sharded across the 4 gpus. Further, I wanted to do this without levaraging nothing more than pytorch. Altough this would have been much easier with things such as <a href="https://huggingface.co/docs/accelerate/index">accelerate</a> or <a href="https://deepspeed.ai">deepspeed</a>. </p>
-
-            <p> Well, I quickly found out that this was a little bit more tedious than I initially thought. Mainly because the documentation is fragmented between two different framewords, Fully Sharded Data Parallel (FSPD) and FSDP2. Both appears to be supported but the second one is preferred. However, some features are only available from the first one. And such things, is not really clear how should be done when using FSDP2. For example, FSDP supports <code>sync_module_states</code> (which, to my belief, is set to load the model weights) however, FSDP2 does not. Instead, it has <codetorch.distributed.checkpoint.state_dict.get_model_state_dict</code>. Among other things, you need to fight with hidden multiprocessing barries that are not well documented and hangs your program without any error message. Well, let's just say that the guide I am writing would have been very useful to me. So, here it is. </p>
-
-            <h3> Initialization </h3>
-
-            <p> Torch distributed is the framework to handle multiprocessing in pytorch. This comes in handy when you want to distribute training or inferences across multiple gpus or even multiple nodes. The basic logic unit in pytorch distributed is the process. You can think of a process as the instance of a program (that needs to communicate with other instances of the same program). Usually, each process is assigned to a single gpu. However, this is not a strict requirement. Further, each process is assigned a unique identifier called the <code>global_rank</code>. The global rank is an integer that goes from 0 to <code>world_size - 1</code> where <code>world_size</code> is the total number of processes. Processes also have a <code>local_rank</code> which identifies the process inside a group. A group is usually associated with a compute node.</p>
-
+            <h3> Motivation </h3>
             <p> 
-            To put things into perspective, suppose you have 2 machines each with 4 gpus (a total of 8 gpus). Then you would map the processes to the gpus as follows: 
+            Recently, I got access to a bit more compute power than I usually have at my disposal, which felt like the perfect excuse to dive into <a href="https://pytorch.org/docs/stable/distributed.html">PyTorch Distributed</a>. Think of this post less as a polished tutorial and more as my cleaned-up study notes made public.
             </p>
 
             <p>
-            First node, aka group 1
+            One thing I noticed while learning is that the official docs and tutorials for this part of PyTorch can be a little… let’s say sparse. They cover the basics well enough, but once you want to do something slightly more advanced, you start bumping into missing details and ambiguities.
+            </p>
+
+            <p>
+            That’s why I’m writing this up: to bridge some of those gaps (and selfishly, to force myself to learn better). If you spot mistakes, missing info, or have something useful to add, please reach out—I’ll happily update the post and give you credit. </p>
+            </p>
+
+            <p> 
+            My starting goal with <code>torch.distributed</code> was simple(ish): I wanted to fine-tune a small LLM—something like <a href="https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct">Qwen2.5-1.5B Instruct</a>—using 4 GPUs with tensor parallelism. In practice, that means slicing the model into shards and spreading them across the four GPUs.
+            </p>
+
+            <p> 
+            Now, I know what you’re thinking: “Wouldn’t this be way easier with Hugging Face Accelerate or DeepSpeed?” Absolutely. But I deliberately avoided those libraries—I wanted to see how far I could get with just PyTorch and nothing else.
+            </p>
+
+            <p> 
+            I quickly realized this whole thing was a lot more tedious than I expected. The main reason? The documentation is scattered between two overlapping frameworks: Fully Sharded Data Parallel (FSDP) and FSDP2. Both are technically supported, but FSDP2 is supposed to be the “preferred” one. The catch: some features still only exist in the original FSDP, and it’s not always obvious how you’re supposed to achieve the same thing in FSDP2.
+            </p>
+
+            <p> 
+            Take an example: FSDP supports <code>sync_module_states</code>, which (as far as I understand) handles syncing model weights across ranks. FSDP2 doesn’t have this. Instead, you’re supposed to use <code>torch.distributed.checkpoint.state_dict.get_model_state_dict</code>. Clear as mud, right?
+            </p>
+
+            <p> 
+            And then there are the hidden landmines—like multiprocessing barriers that aren’t properly documented, yet will happily freeze your program without a single error message. Fun times.
+            </p>
+
+            <p> 
+            Anyway, that’s why I decided to write this guide: it’s exactly the kind of resource I wish I’d had when I started.
+            </p>
+
+            <h3> Introduction </h3>
+
+            <p> 
+            <code>torch.distributed</code> is PyTorch’s built-in framework for handling multiprocessing. It’s what you reach for when you want to spread training or inference across multiple GPUs—or even multiple machines.
+            </p>
+
+            <p> 
+            The core unit in PyTorch Distributed is the process. You can think of a process as one running instance of your program that needs to talk to all the other instances. By convention, each process usually controls one GPU, though that’s not a strict rule.
+            </p>
+
+            <p> 
+            Every process gets a unique ID called its <code>global_rank</code>. This is just an integer ranging from 0 up to <code>world_size - 1</code>, where <code>world_size</code> is the total number of processes in your distributed job. Processes also get a <code>local_rank</code>, which is their identifier within a node. Groups of processes (often mapped to nodes) use <code>local_rank</code> to coordinate.
+            </p>
+
+            <p> 
+            To make this more concrete, let’s say you have 2 machines (nodes), each with 4 GPUs—for a total of 8 GPUs. You’ll typically launch one process per GPU, so you end up with 8 processes in total. Each process gets both a global rank (unique across the whole job) and a local rank (unique within its node).
+           </p>
+
+            <p> 
+            Here’s how the mapping could look:
+            </p>
+
+            <p>
+            Node 0, (first machine).
             </p>
             <ul>
                 <li> Process 0 -> GPU 0, local rank 1, global rank 1 </li>
@@ -47,7 +91,7 @@
                 <li> Process 3 -> GPU 3, local rank 4, global rank 4 </li>
             </ul>
             <p>
-            Second node, aka group 2 <br>
+            Node 1 (second machine).
             </p>
             <ul>
                 <li> Process 4 -> GPU 0, local rank 1, global rank 5  </li>
@@ -57,24 +101,59 @@
             </ul>
             </p>
 
+            <h3> Initialization </h3>
+
             <p>
-                Now, we could start this processes one by one using four shells. However, this is not very practical. Luckily, torch comes with torchrun (a replacement for the deprecated torch.distributed.launch) which will handle the process spawning for us. To start 4 processes on a single node, we would use <code>torchrun --nnodes 2 --nproc_per_node=4 your_script.py</code>.
-            </p>
-            
-            <p>
-                Inside the script we are required to handle the initialization of the process group and its termination. There are two ways to handle initialization. The main one using <code>torch.distributed.init_process_group</code>. <code>init_process_group</code> needs to know a few things. 
-            </p>
-            <ul>
-                <li> <code>word_size</code> The world size. </li>
-                <li> <code>rank</code> The global rank of the process. </li>
-                <li> <code>backend</code> The backend to use. </li>
-            </ul>
-            <p>
-                    Here each process is assigned its own rank, it is put in communication with all the other processes. This mean that until each process is spawned and initialized, none of them will be able to proceed. This is called a <em>barrier</em>. The way process communicate depends on the backend. Usually <code>'nccl'</code> for gpus and <code>'gloo'</code> for cpus. In our example, we would set the backend to <code>'nccl'</code>. We would set the world size to 8 and we would run 8 processes with rank assigned from 0 to 7. The rank is usually passed as an environment variable. As mentioned earlier this is can be cumbersome to handle manually. Luckily, torchrun will handle this for us.
+            Sure, you could manually fire up each process in its own terminal window—but unless you enjoy juggling shells, that gets old fast. Thankfully, PyTorch gives us <code>torchrun</code> (the modern replacement for the now-deprecated <code>torch.distributed.launch</code>), which takes care of spawning the processes for you.
             </p>
 
             <p>
-            The second way to initialize the communication is using <code>torch.distributed.device_mesh.init_device_mesh</code>. This is a higher level API that allows you to also define a mesh topology, wich can be directly applied when you do sharding.
+            For example, to launch 4 processes on a single node, you’d run:
+            </p>
+
+            <pre><code class="language-bash">torchrun --nproc_per_node=4 your_script.py
+            </code></pre>
+
+            <p>
+            And if you want to scale this to 2 nodes with 4 GPUs each (so 8 processes total), you’d use:
+            </p>
+
+            <pre><code class="language-bash">torchrun --nnodes=2 --nproc_per_node=4 your_script.py
+            </code></pre>
+            
+            <p>
+            Inside your script, each process needs to initialize a process group before it can start communicating with the others—and later, properly clean it up. PyTorch provides two ways to handle this initialization, but the most common method is using <code>torch.distributed.init_process_group</code>.
+            </p>
+
+            <p>
+            The <code>init_process_group</code> function requires a few pieces of information to work correctly, which we’ll break down next.
+            </p>
+
+            <ul> 
+                <li><code>world_size</code>: The total number of processes in the job.</li> 
+                <li><code>rank</code>: The global rank of the current process.</li> 
+                <li><code>backend</code>: The communication backend to use.</li> 
+            </ul>
+
+            <p>
+            Each process is assigned a rank and is then connected to all the other processes. This means that no process can proceed until all of them have been spawned and initialized—a situation called a <em>barrier</em>.
+            </p>
+
+            <p>
+            The way processes communicate depends on the backend. Common choices are <code>'nccl'</code> for GPUs and <code>'gloo'</code> for CPUs. In our example, we would set the backend to <code>'nccl'</code>, the world size to 8, and spawn 8 processes with ranks from 0 to 7.
+            </p>
+
+            <p>
+            The rank is typically provided via environment variables. Doing this manually can be tedious, but <code>torchrun</code> handles it automatically, so you don’t have to worry about it.
+            </p>
+            
+            <p>
+            The second way to initialize distributed communication is through <code>torch.distributed.device_mesh.init_device_mesh</code>. This higher-level API not only sets up the process group for you, but also lets you define a mesh topology, which can be directly applied when performing model sharding or tensor parallelism.
+            </p>
+
+            <p>
+            Here’s a simple example:
+            </p>
 
 <pre><code class="language-python">mesh = torch.distributed.device_mesh.init_device_mesh(
     torch.device("cuda").type,
@@ -83,23 +162,29 @@
 )
 
 </code></pre>
+
+            <p>
+            In this example, we define a 2×4 mesh: 2 partitions along the data-parallel dimension (dp) and 4 partitions along the tensor-parallel dimension (tp). Conceptually, this gives us 2 groups of 4 processes. Each group handles a full model replica, while each replica is sharded across the 4 processes in its group. At this stage, the device division is purely logical; it doesn’t yet move tensors or computations onto specific GPUs.
             </p>
 
             <p>
-
-            This will create a 2x4 mesh. The first dimension is called <code>dp</code> and the second <code>tp</code>. This means that we have 2 groups of 4 processes. The idea is that each group will handle a model replica but each replica will be sharded across 4 process. However, at this point the device division is purely logical. 
+            In my experiments, I noticed that when using <code>init_device_mesh</code> alone, I occasionally ran into warnings related to barriers. These warnings disappeared when I also called <code>init_process_group</code>. In practice, I prefer initializing communication using <code>init_device_mesh</code>, though the documentation doesn’t make this usage entirely clear. Another point of confusion: the official examples assume FSDP, not FSDP2. However, <code>torch.distributed.fsdp.fully_shard</code> (which we’ll introduce later) accepts a device mesh as an argument, so the two appear compatible.
             </p>
 
             <p>
-            I add that in my experiments, when using the <code>init_device_mesh</code> I run into a few warnings when using barriers which disappeared when also calling <code>init_process_group</code>. To me, the prefferred way to initialize communication should be using <code>init_device_mesh</code>. However, the documentation is not very clear on this aspect. Further, code example in the documentation of <code>init_device_mesh</code> assume FSDP, and not FSDP2. However, <code>torch.distributed.fsdp.fully_shard</code> (which will be introduced later) accepts a device mesh as argument. So, I guess that the two are compatible.
+            Finally, once your distributed job is complete, you need to terminate the process group by calling:
             </p>
 
+            <pre><code>torch.distributed.destroy_process_group()</code></pre>
+
             <p>
-            Now that we cover whats the first thing we need to do, we can skip to the end. At the end of the script we need to call <code>torch.distributed.destroy_process_group()</code> to terminate the communication. 
+            This cleans up the communication resources and ensures that all processes exit gracefully.
             </p>
 
             <p>
             To summarize, our program should look like this at this point:
+            </p>
+
 <pre><code class="language-python">import torch
 mesh = torch.distributed.device_mesh.init_device_mesh(
     torch.device("cuda").type,
@@ -114,24 +199,35 @@ print(
 torch.distributed.destroy_process_group()
 
 </code></pre>
-            </p>
 
             <p>
             To run this script, we would run the following command on the first node:
             </p>
 
-            <pre><code class="language-bash">torchrun --nnodes=2 --nproc_per_node=4 --node_rank=0 --master_addr=<node0-ip> test.py
+            <pre><code class="language-bash">torchrun --nnodes=2 --nproc_per_node=4 --node_rank=0 --master_addr=MASTER_ADDR test.py
             </code></pre>
 
             <p>
             And on the second node:
             </p>
 
-            <pre><code class="language-bash">torchrun --nnodes=2 --nproc_per_node=4 --node_rank=1 --master_addr=<node0-ip> test.py
+            <pre><code class="language-bash">torchrun --nnodes=2 --nproc_per_node=4 --node_rank=1 --master_addr=MASTER_ADDR test.py
             </code></pre>
 
             <p>
-            Note that, the master_addr is the ip address of the node that will handle the communication. This is should be the same for all nodes. Also, note the <code>node_rank</code> which identifies the process group. When both groups of processors are spawned, initialized, their are put in communication. And we would see the following output:
+            A few additional points to keep in mind for multi-node setups:
+            </p>
+
+            <p>
+            <code>MASTER_ADDR</code>: This should be the ip address of the node that coordinates communication (often called the “master node”). All nodes must use the same master address.
+            </p>
+
+            <p>
+            <code>node_rank</code>: This identifies the rank of the node within the cluster. The master node is usually <code>node_rank=0</code>, the next node is <code>node_rank=1</code>, and so on.
+            </p>
+
+            <p>
+            Once all processes across all nodes are spawned and initialized, they are fully connected and ready to communicate. If your script prints rank information or logs, you’ll now see output from every process showing its global and local ranks.
             </p>
 
 <pre><code class="language-bash"># On node 1
@@ -145,21 +241,41 @@ rank: 7 local_rank: 3 world_size: 8
 rank: 6 local_rank: 2 world_size: 8
 rank: 4 local_rank: 0 world_size: 8
 
-
 </code></pre>
 
             <p>
-And after this, the program would terminate. I only note that if you do not set properly the <code>master_addr</code> and the nodes cannot reach each other, the program will hang indefinitely without any error message. The same happens if you do not set the <code>node_rank</code> properly. That is because the barrier expects 8 processes in two groups of 4. If one group does not reach the barrier, the other group will wait indefinitely.
+            Finally, once all processes finish their work, the program will terminate.
+            </p>
+
+            <p>
+            One important caution: if <code>MASTER_ADDR</code> isn’t set correctly and the nodes cannot reach each other, the program will hang indefinitely—with no error message. The same happens if node_rank is misconfigured.
+            </p>
+
+            <p>
+            This occurs because the barrier used during initialization expects all 8 processes to reach it (in our example, two groups of 4). If even one group fails to arrive at the barrier, the other group will wait forever.
             </p>
 
             <h3> Loading a Model </h3>
 
             <p>
-            Now that we have the initialization out of the way, we can move to sharding. As you may know, nowdays LLM are fairly big. Often, way beyon what a single GPU memory can hold. To be able to use such models, we can shard them across multiple gpus. Of course, when we shard a model, we are putting an heavy burden on the gpu-2-gpu communincation. Therefore, we should shard only across gpus on the same node. This is called tensor parallelism. However, if we have multiple nodes, we can also replicate the sharded model on each node. This is called data parallelism. Therefore, if we have 2 nodes with 4 gpus each, we can shard the model across the 4 gpus on each node and replicate the sharded model on the second node. This way, we can leverage both tensor and data parallelism. This is what FSDP2 allows us to do. I'll only add that these are not the only two ways to parallelize a model.
+            With initialization out of the way, we can now move on to model sharding. As you may know, modern LLMs are huge—often far too large to fit into the memory of a single GPU. To handle them, we can shard the model across multiple GPUs.
+
+            <p>
+            Sharding does put a heavy load on GPU-to-GPU communication, so it’s usually best to shard only across GPUs on the same node. This approach is called tensor parallelism.
             </p>
 
             <p>
-            To shard a model, we first to load it. For example, let us load Qwen2.5 1.5B Instruct from Huggingface:
+            If you have multiple nodes, you can also replicate the sharded model on each node, which is known as data parallelism. For example, with 2 nodes of 4 GPUs each, you could shard the model across the 4 GPUs on one node and then replicate that sharded model on the second node. This setup leverages both tensor and data parallelism simultaneously—a capability that FSDP2 supports.
+            </p>
+
+            <p>
+            Of course, tensor and data parallelism are just two of the many ways to parallelize a model; there are other strategies depending on your needs.
+            </p>
+
+            <p>
+            Before we can shard a model, we first need to load it. For instance, let’s load Qwen2.5-1.5B Instruct from Hugging Face:
+            </p>
+
 <pre><code class="language-python">from transformers import AutoModelForCausalLM, AutoTokenizer
 model="Qwen/Qwen2.5-1.5B-Instruct"
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -176,12 +292,15 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 </code></pre>
+
+            <p>
+            If we load the model normally, each process will load the entire model into CPU memory. This is fine for very small models, but for larger LLMs, it quickly becomes infeasible.
             </p>
 
             <p>
-            By doing so, however, each process is loading in cpu memory the entire model. This is ok for a really smoll model. However, for larger models, this is not feasible. To solve this, we will only load the model on the first process (rank 0). This can be achieved by simply using an if statement:
+            A common solution is to load the model only on the first process (rank 0) and then share or shard it across the other processes. This can be easily achieved with a simple if statement:
             </p>
-            <p>
+
 <pre><code class="language-python">if torch.distributed.get_rank() == 0:
     console.log(f"rank{torch.distributed.get_rank()} loading model on CPU")
     model_config.init_device = "cpu"
@@ -193,10 +312,13 @@ model = AutoModelForCausalLM.from_pretrained(
     )
 
 </code></pre>
+
+            <p>
+            Alongside the model loaded on rank 0, all other ranks need to create a “meta model.” A meta model has the same architecture as the original model but does not allocate any memory for its parameters. This allows us to initialize large models without exceeding memory limits on each process.
             </p>
 
             <p>
-            Togheter with rank0, all other ranks need to create the meta model. This is a model that has the same architecture as the original model but does not allocate any memory for the parameters. This is achieved by using the <code>meta</code> device:
+            In PyTorch, this is achieved by using the <code>meta</code> device:
             </p>
 
 <pre><code class="language-python">model_config.init_device = "meta"
@@ -206,20 +328,21 @@ meta_model = transformers.AutoModelForCausalLM.from_pretrained(
     torch_dtype=torch.bfloat16, 
     local_files_only=True, 
 )
+
 </code></pre>
     
             <p>
-            Admitedly, I find this last snippet quite unsatisfactory. I mean, loading a configuration, modify the same in-place twice does look very error-prone. However, this is the only way I could find that worked without relying on <a href="https://huggingface.co/docs/accelerate/index">accelerate</a>. If you have a better way to achieve this, let me know.
+            Admittedly, I find this last snippet a bit unsatisfactory. Loading a configuration and modifying it in-place twice feels error-prone, but this was the only method I found that worked without relying on <a href="https://huggingface.co/docs/accelerate/index">Accelerate</a>. If you know a cleaner approach, I’d love to hear about it!
             </p>
 
             <p>
-            This is what the pytorch guys call as <b>deferred initializzation</b> <span class="cite" value="Zhao23"></span>. In this phase they mention that operation done during initialization are recorded on "fake" tensors and then replayed during materialization. However, I do not know enough of pytorch internals ot speak more confidently on what torch is actually abstracting.
+            PyTorch calls this approach “deferred initialization” <span class="cite" value="Zhao23"></span>. In this phase, operations performed during initialization are recorded on “fake” tensors and then replayed during materialization. That said, I don’t know enough of PyTorch internals to explain exactly what is happening under the hood—I can only describe what the API is abstracting.
             </p>
 
             <h3> Sharding a Model </h3>
 
             <p>
-            Following the <a href="https://docs.pytorch.org/tutorials/intermediate/FSDP_tutorial.html?utm_source=chatgpt.com">PyTorch FSDP2 tutorial</a>, the next step should be to call <code>torch.distributed.fsdp.fully_shard</code> on the submodule and the root module, which in the case for Qwen2.5 I have interpreted like os.
+            Following the <a href="https://docs.pytorch.org/tutorials/intermediate/FSDP_tutorial.html?utm_source=chatgpt.com">PyTorch FSDP2 tutorial</a>, the next step is to call <code>torch.distributed.fsdp.fully_shard</code> on both the submodules and the root module. In the case of Qwen2.5, I interpreted this as applying it to the entire model hierarchy, including all nested submodules.
             </p>
 
 <pre><code class="language-python">for i,layer in enumerate(meta_model.model.layers):
@@ -231,7 +354,7 @@ fully_shard(meta_model, mesh=mesh)
 </code></pre>
 
             <p>
-            I am guessing that this step prepares the layout for shard the model evenly across the ranks. However, materialiazione does not kick in place until we call:
+            I suspect that this step sets up the layout to shard the model evenly across all ranks. However, materialization does not actually occur until we explicitly call:
             </p>
 
 <pre><code class="language-python">meta_model.to_empty(device="cuda")
@@ -239,13 +362,13 @@ fully_shard(meta_model, mesh=mesh)
 </code></pre>
 
             <p> 
-            However, as the name suggests, parameters tensor are not initialized with the original Qwen2.5 parameters. This are just empty tensor. So if you try to run the model like so you will at best run in a junk text, and at worst, you'll get exceptions for having run into value errors due NaN and weird stuff that happens when you do not properly initialize the allocations.
+            As the name suggests, the parameter tensors are not initialized with the original Qwen2.5 weights—they are just empty tensors. If you try to run the model at this stage, at best you’ll get meaningless output, and at worst, you may encounter exceptions or NaNs caused by uninitialized memory.
             </p>
 
             <h3> Broadcasting Weights </h3>
 
             <p>
-            To effectively broardcast the weights from the <code>cpu_model</code> (loaded only by the rank0) we can use <code>torch.distributed.checkpoint.state_dict.set_model_state_dict</code>. The following snipped does broadcast the weights:
+            To effectively broadcast the weights from the <code>cpu_model</code> (which is loaded only on rank 0), we can use <code>torch.distributed.checkpoint.state_dict.set_model_state_dict</code>. The following snippet shows how to perform this broadcast
             </p>
 
 <pre><code class="language-python">state_dict.set_model_state_dict(
@@ -256,14 +379,15 @@ fully_shard(meta_model, mesh=mesh)
         broadcast_from_rank0=True,
     )
 )
+
 </code></pre>
 
             <p>
-            This is pretty straight forward. The thing to note is that only rank0 actually fed this function with a <code>state_dict</code>. All other ranks use a simple <code>None</code>.
+            This is fairly straightforward. The key point is that only rank 0 provides a state_dict to the function, while all other ranks simply pass None.
             </p>
 
             <p>
-            We are almost done. State dicts in torch hold trainable parameters. However, Qwen2.5 is also made of a bunch of non trainable tensors. This need to be initialized too. This can be done by itereting on the cpu buffers, load this buffers on the rank0 shard, and finlly broadcast the rank0 shard to all other ranks.
+            We’re almost done. In PyTorch, state_dicts hold the trainable parameters, but Qwen2.5 also contains non-trainable tensors. These need to be initialized as well. A common approach is to iterate over the CPU buffers, load them on the rank 0 shard, and then broadcast the rank 0 shard to all other ranks.
             </p>
 
 <pre><code class="language-python">for name, meta_buf in meta_model.named_buffers():
@@ -279,13 +403,13 @@ fully_shard(meta_model, mesh=mesh)
 
 </code></pre>
 
-        <p>
-        The nested if-else code may appear perplexing. Why do we need to call meta_buf.zero_() if we then broadcast the weights from rank0. Truth be told, I am unsure of that myself. However, without that <code>meta_buf.copy_(cpu_buf)</code> the code hangs indefinetely. I believe that this is due a barrier that all rpocess need to reach. Without <code>meta_buf.copy_(cpu_buf)</code> rank0 and all other ranks may become misaligned where one attends for the other at a barrier they wont be able to reach.
-        </p>
+            <p>
+            The nested if-else code might seem confusing. Why do we need to call <code>meta_buf.zero_()</code> if we’re going to broadcast the weights from rank 0 anyway? Honestly, I’m not entirely sure myself. However, without the <code>meta_buf.copy_(cpu_buf)</code> step, the code hangs indefinitely. I suspect this is due to a barrier that all processes must reach. Without copying the buffer, rank 0 and the other ranks can become misaligned, causing one process to wait at a barrier that it can never reach.
+            </p>
 
-        <p>
-        And with this, our model is ready to be used. Let me put everything togheter for convenience. I'll also add a small completion example.
-        </p> 
+            <p>
+            With that done, our model is finally ready to use. For convenience, I’ll now put everything together and include a small completion example to illustrate it in action. 
+            </p>
 
 <pre><code class="language-python">from torch.distributed.checkpoint import state_dict
 from torch.distributed.fsdp import fully_shard
@@ -379,28 +503,41 @@ torch.distributed.destroy_process_group()
 
 </code></pre>
 
-        <h3> A Peak Behind the Curtains </h3>
+            <h3> A Peak Behind the Curtains </h3>
 
-        <p>
-        Most notably, you can see that we do not do anything practically different from at inference time. As a matter of fact this last part would not change if we were to use a whole model rather than a sharded one. So what's happening behind the curtains?
-        </p>
+            <p>
+            Interestingly, at the end of the day, we’re not doing anything fundamentally different from standard inference. In fact, this last part of the workflow would remain the same whether we were using a fully loaded model or a sharded one. So what’s actually happening behind the scenes?
+            </p>
 
-        <p>
-        When FSDP is applied a layer's parameters are encapsulated in a <code>FlatParameter</code>. This object is then padded so that is can be uniformly split across ranks. On materializations, each rank hold a piece of this object. When an input is available to be processed by the sharded layer, pytorch pulls togheter all the shards, in what is called an <b>All-Gather</b> operation. After that, all ranks materialize the full-layer and are ready to process each their own samples. When the layer's computation is done, the layer materialization gets deleted to free memory.
-        </p>
+            <p>
+            When FSDP is applied, a layer’s parameters are encapsulated in a FlatParameter. This object is then padded so it can be evenly split across ranks. During materialization, each rank holds a piece of this object. When an input needs to be processed, PyTorch performs an All-Gather operation to pull together all the shards. After that, each rank has the full layer materialized and is ready to process its own batch of samples. Once the computation for that layer is done, the materialized layer is deleted to free memory.
+            </p>
 
-        <p>
-        If that was a little bit too much for you, I encourage you to check out this blog <a href="https://blog.roboflow.com/collective-communication-distributed-systems-pytorch/">post</a> with quite cool visualizations about several of the basic distributed operations available in <code>torch.distributed</code>.
-        </p>
+            <p>
+            If that was a bit dense, I highly recommend checking out this <a href="https://blog.roboflow.com/collective-communication-distributed-systems-pytorch/">blog post</a>, which has great visualizations of the basic distributed operations in <code>torch.distributed</code>.
+            </p>
 
-        <p>
-        To conclude a small consideration. Does it make sense to have a batch size of 1 when using FSDP? Well not really. Since each rank materialize the full layer anyways it is best that at least each rank can process a different sample. 
-        </p>
+            <p>
+            A small practical consideration: does it make sense to use a batch size of 1 with FSDP? Not really. Since each rank materializes the full layer anyway, it’s better if each rank can process at least one sample, so memory and compute are used efficiently.
+            </p>
 
-        <p>
-        I should also mention that the fully sharded approach is not the only available approach in pytorch. Other hybrid approaches are valid too. If you are interest reading more on the topic I suggest you have a read at the torch distributed paper [1].
-        </p>
-        
+            <p>
+            Finally, note that the fully sharded approach isn’t the only option in PyTorch. There are hybrid strategies as well. If you’re interested in exploring further, I suggest reading the PyTorch Distributed paper [1].
+            </p>
+
+            <h3> Conclusion </h3>
+
+            <p>
+            Distributed training in PyTorch, especially with FSDP2, can feel daunting at first. From initializing process groups and handling device meshes, to sharding large models and broadcasting weights, there are many moving parts—and small mistakes can easily lead to hangs or memory issues.
+            </p>
+
+            <p>
+            Ultimately, once the setup is correct, training or inference with sharded LLMs works very similarly to standard models. FSDP2 provides the flexibility to combine tensor and data parallelism while keeping memory usage manageable, making it a powerful tool for scaling large models.
+            </p>
+
+            <p>
+            I hope this guide serves as a practical reference for your experiments. If you find errors, gaps, or have better strategies, sharing them will help the community—and I’ll gladly update the post with credit.
+            </p>
 
         </div>
 
