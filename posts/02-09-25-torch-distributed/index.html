@@ -175,7 +175,8 @@
             Finally, once your distributed job is complete, you need to terminate the process group by calling:
             </p>
 
-            <pre><code>torch.distributed.destroy_process_group()</code></pre>
+            <pre><code class="language-python">torch.distributed.destroy_process_group()
+            </code></pre>
 
             <p>
             This cleans up the communication resources and ensures that all processes exit gracefully.
@@ -498,6 +499,7 @@ completions = meta_model.generate(
 )
 if torch.distributed.get_rank() == 0: 
     print(tokenizer.batch_decode(completions, skip_special_tokens=False))
+
 
 torch.distributed.destroy_process_group()
 
