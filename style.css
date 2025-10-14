@@ -50,7 +50,7 @@ body.dark-mode {
 
 html body {
     background-color: var(--background-color);
-    font-family:-apple-system,BlinkMacSystemFont,segoe ui,Roboto,Oxygen,Ubuntu,Cantarell,open sans,helvetica neue,sans-serif;
+    font-family: "Roboto";
     height: 100%;
     width: 720px;
     margin-top: 10px;
@@ -106,7 +106,10 @@ html body {
     text-align: left;
 }
 
-
+.bibtex {
+    color: var(--biblio-color);
+    text-align: left;
+}
 
 h1 {
     font-size: 24px;

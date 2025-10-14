@@ -152,5 +152,17 @@ const bibliography = {
         "journal" : "arXiv preprint arXiv:2304.11277",
         "year"    : "2023",
         "url"     : "arxiv.org/pdf/2304.11277"
+    },
+    "Reddi25" : {
+        "title"   : "$K$-Level Policy Gradients for Multi-Agent Reinforcement Learning",
+        "author"  : "Reddi, Aryaman and Tiboni, Gabriele and Peters, Jan and D'Eramo, Carlo",
+        "journal" : "arXiv preprint arXiv:2509.12117",
+        "year"    : "2025"
+    },
+    "Kaddour23" : {
+        "title"   : "The MiniPile Challenge for Data-Efficient Language Models",
+        "author"  : "Kaddour, Jean",
+        "journal" : "arXiv preprint arXiv:2304.08442",
+        "year"    : "2023"
     }
 }

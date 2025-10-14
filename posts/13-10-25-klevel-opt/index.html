@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../../style.css">
+        <link rel="stylesheet" href="../../post.css">
+        <link rel="stylesheet" href="../../code.css">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+
+
+
+        <title>Disarray</title>
+
+    </head>
+    
+    <body>
+
+        <div id="root-folder" value="../../"></div>
+
+        <div id="header"></div>
+
+        <div class="post-body">
+
+            <h1>L2L: Layer-wise 2-Level Optimization</h1>
+
+            <h3>Background</h3>
+
+            <p>
+              This post outlines a training procedure for large language models (LLMs)—and neural networks in general—that I
+              call <strong>Layer-wise 2-Level Optimization (L2L)</strong>. The idea is inspired by the
+              <em>K-Level Policy Gradient</em> paper <span class="cite" value="Reddi25"></span>, which is well worth a read if
+              you're into multi-agent learning.
+            </p>
+
+            <p>
+              In that paper, the authors tackle a problem in multi-agent reinforcement learning. Normally, each agent updates
+              its policy in isolation, ignoring how the others might change. The K-Level method instead assumes that every agent
+              “looks ahead” and updates its policy as if it already knew what the other agents’ next moves would be.
+            </p>
+
+            <p>
+              Suppose you have \(N\) agents, each with policy \(\pi_i\) parameterized by \(\theta_i\). A standard gradient update
+              looks like:
+            </p>
+
+            <p>
+              \[
+              \theta^1_i = \theta^0_i - \eta \nabla_{\theta^0_i} L_i(\theta^0_1, \theta^0_2, \ldots, \theta^0_N)
+              \]
+            </p>
+
+            <p>
+              where \(\eta\) is the learning rate, and the superscripts \(0\) and \(1\) refer to parameters before and after the
+              update, respectively.
+            </p>
+
+            <p>
+              The K-Level idea modifies this: when updating agent \(i\), we use the <em>updated</em> policies of all other
+              agents. For example:
+            </p>
+
+            <p>
+              \[
+              \theta^2_1 = \theta^0_1 - \eta \nabla_{\theta^0_1} L_1(\theta^0_1, \theta^1_2, \ldots, \theta^1_N)
+              \]
+              and similarly for all other agents.
+            </p>
+
+            <p>
+              In other words, each agent’s update anticipates how the others will change. This can be done recursively up to a
+              chosen level \(K\), although in practice \(K=2\) often suffices. The results in the paper are impressive—but what
+              if we took this concept beyond multi-agent RL?
+            </p>
+
+            <h2>Layer-wise 2-Level Optimization (L2L)</h2>
+
+            <p>
+              Let’s make a bold leap: what if we treat <em>layers</em> in a neural network as “agents”? Each layer has its own
+              parameters, passes information to the next, and contributes to a shared goal—the overall loss. That sounds a lot
+              like a cooperative multi-agent system.
+            </p>
+
+            <p>
+              In standard training, the parameters of layer \(i\) are updated like this:
+            </p>
+
+            <p>
+              \[
+              \theta^1_i = \theta^0_i - \eta \nabla_{\theta^0_i} L(\theta^0_1, \theta^0_2, \ldots, \theta^0_N)
+              \]
+            </p>
+
+            <p>
+              With L2L, we instead consider how other layers will change:
+            </p>
+
+            <p>
+              \[
+              \theta^2_i = \theta^0_i - \eta \nabla_{\theta^0_i} L(\theta^1_1, \ldots, \theta^1_{i-1}, \theta^0_i,
+              \theta^1_{i+1}, \ldots, \theta^1_N)
+              \]
+            </p>
+
+            <p>
+              So, each layer’s gradient step accounts for the “future selves” of the other layers. Conceptually, it’s like each
+              layer is saying, “I’ll adjust now, assuming everyone else will also take a step forward.”
+            </p>
+
+            <h3>A Note About Optimization</h3>
+
+            <p>
+              Of course, this doesn’t come for free. To do this properly, we’d need a forward and backward pass for each layer,
+              which quickly gets expensive. However, since layers are sequentially connected, we can cache intermediate results
+              (hidden states) to avoid recomputation.
+            </p>
+
+            <p>
+              For instance, if we’ve already computed layer 0’s outputs, we can store them and skip recalculating them later.
+              Even with this trick, the total cost scales roughly as \(\frac{N(N+1)}{2}\) passes—a big jump compared to standard
+              training, but manageable for experimentation.
+            </p>
+
+            <h3>A Note About Alternatives</h3>
+
+            <p>
+              You might ask: why stop at layers? Couldn’t we treat parameter tensors—or even individual weights—as “agents”? In
+              theory, yes. In practice, that would be a computational nightmare.
+            </p>
+
+            <p>
+              More feasible alternatives include grouping layers (e.g., updating in blocks of 2–4), or creating an interleaved
+              setup where even and odd layers act as two cooperative “teams.” You could also experiment with more than two
+              levels (\(K > 2\)), though the cost rises quickly. For now, I’ve focused on the simplest setup: single layers as
+              agents, with \(K = 2\).
+            </p>
+
+            <p>
+              If you experiment with other configurations, definitely let me know—I’d love to hear what you find.
+            </p>
+
+            <h3>Implementation</h3>
+
+            <p>
+              Now for the fun part: implementation. I often find that research papers leave me wondering, “Okay, but how do I
+              actually code this?” So here’s the gist of how I implemented L2L in PyTorch. (Much of this builds on code from my
+              previous post.)
+            </p>
+
+            <p>
+              A baseline training loop looks like this:
+            </p>
+
+            <pre><code class="language-python">for batch in train_dataloader():
+
+    input_ids = batch["input_ids"][get_rank()::get_world_size()].to(device)
+    attention_mask = batch["attention_mask"][get_rank()::get_world_size()].to(device)
+    manager.on_train_step_begin(local=locals())
+
+    outputs = model(
+        input_ids=input_ids,
+        attention_mask=attention_mask,
+        labels=input_ids,
+    )
+    loss = outputs.loss
+    loss.backward()
+
+    manager.on_before_optimizer_step(local=locals())
+
+    optimizer.step()
+    optimizer.zero_grad()
+
+    manager.on_train_step_end(local=locals())
+            </code></pre>
+
+            <p>
+              The real L2L magic happens inside two callbacks:
+              <code>manager.on_train_step_begin</code> and <code>manager.on_train_step_end</code>.
+              Let’s unpack them.
+            </p>
+
+            <pre><code class="language-python">@torch.no_grad()
+def on_train_step_begin(self, local, context):
+    self.start_step_time = time.time()
+    self.layer_sd_clone = clone_layers(local["model"])
+    self.optim_sd_clone = clone_optimizer(local["optimizer"])
+            </code></pre>
+
+            <p>
+              Here we simply clone the model’s and optimizer’s state_dicts. This gives us a snapshot of each layer before the
+              optimizer modifies it—essential for the two-level update. We’ll restore these later so that the optimizer’s internal
+              state doesn’t drift unexpectedly.
+            </p>
+
+            <p>
+              Now, the core of the L2L logic:
+            </p>
+
+            <pre><code class="language-python">def on_train_step_end(self, local, context):
+    model = local["model"]
+    optimizer = local["optimizer"]
+    input_ids = local["input_ids"]
+    attention_mask = local["attention_mask"]
+
+    optimizer.zero_grad()
+    for i, layer in enumerate(model.model.layers):
+
+        # Restore pre-update weights for current layer
+        for param, other in zip(layer.parameters(),self.layer_sd_clone[i].values()):
+            utils.swap(param, other)
+
+        if i == 0:
+            outputs = model(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                labels=input_ids,
+                register_hidden_states=True
+            )
+        else:
+            outputs = model(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                labels=input_ids,
+                start_layer=i,
+            )
+
+        outputs.loss.backward()
+
+    # Restore optimizer state
+    for param, other in zip(optimizer.param_groups[0]["params"],self.optim_sd_clone):
+        utils.swap(param, other)
+
+    optimizer.step()
+    model.model.hidden_states.clear()
+            </code></pre>
+
+            <p>
+              We iterate over layers, restoring each one’s pre-update parameters, and recompute the forward and backward passes
+              starting from that layer. To save time, we register intermediate hidden states so we don’t need to recompute from
+              layer 0 every time.
+            </p>
+
+            <p>
+              To support this, I modified the Qwen2 forward method to accept a <code>start_layer</code> argument. This lets the
+              model resume computation from any given layer using the cached hidden states. You can find that code in the GitHub
+              repo linked below.
+            </p>
+
+            <h2>Experiments</h2>
+
+            <p>
+              Let’s see how L2L performs in practice. I ran experiments on the
+              <a href="https://huggingface.co/datasets/JeanKaddour/minipile">MiniPile</a> <span class="cite" value="Kaddour23"></span> dataset using Qwen2-1.5B and Qwen2-3B
+              models for 1000 steps (batch size 64, context length 128). Optimizer: AdamW with lr = 1e-5 and weight decay =
+              0.01. Loss: cross-entropy.
+            </p>
+
+            <div style="display: flex; justify-content: center;">
+              <img src="figs/plot-1.5b-light.svg" alt="Plot 1.5b" width="700">
+            </div>
+
+            <p>
+              As shown above, L2L significantly lowers both training and validation loss for the Qwen2-1.5B model compared to
+              baseline training.
+            </p>
+
+            <div style="display: inline-block;">
+              <img src="figs/plot-3b-light.svg" alt="Plot 3b" width="700">
+            </div>
+
+            <p>
+              The story is similar for Qwen2-3B—stronger convergence and better validation behavior.
+            </p>
+
+            <p>
+              But before we celebrate too hard, there’s a catch. The computational cost is high. Here are training times for
+              1000 steps on a 4×A100 (40GB) setup:
+            </p>
+
+            <ul>
+              <li>Qwen2-1.5B baseline: ~1 hr</li>
+              <li>Qwen2-1.5B L2L: ~10 hrs</li>
+              <li>Qwen2-3B baseline: ~1.5 hrs</li>
+              <li>Qwen2-3B L2L: ~16 hrs</li>
+            </ul>
+
+            <p>
+              That’s roughly a <strong>10× increase in training time</strong>. So, while the results are exciting, this approach
+              isn’t practical yet for large-scale training. Still, there’s plenty of room for optimization: grouping layers,
+              selective updates, or hybrid multi-level strategies might all bring costs down.
+            </p>
+
+            <h2>Conclusion</h2>
+
+            <p>
+              In this post, we explored <strong>Layer-wise 2-Level Optimization (L2L)</strong>, a technique inspired by
+              multi-agent learning ideas. By treating each layer as an independent agent that anticipates others’ updates, we can
+              train networks that converge faster and generalize better—albeit with higher compute costs.
+            </p>
+
+            <p>
+              It’s an intriguing direction that sits somewhere between theoretical curiosity and practical potential. If you try
+              this (or a variation), I’d love to see your results. 
+            </p>
+
+            <p>
+              The code for these experiments is available on this <a href="https://github.com/f14-bertolotti/l2l">repo</a>.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="bibtex" year="2025" month="October"></div>
+
+        <br>
+
+        <div class="bibliography"></div>
+
+        <div id="footer"></div>
+ 
+        <script src="toggle-theme.js"></script>
+        <script src="../../scripts/load-header.js"></script>
+        <script src="../../scripts/load-footer.js"></script>
+        <script src="../../scripts/load-cits.js"></script>
+        <script src="../../scripts/load-bib.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/plugins/toolbar/prism-toolbar.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.2/p5.js"></script>
+
+    </body>
+
+</html>

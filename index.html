@@ -7,6 +7,8 @@
         <meta name="google-site-verification" content="cniabksS1E02e_pI71dMejZJKNxNqszUIJ--H3F0p2g" />
         <link rel="stylesheet" href="style.css">
         <link rel="stylesheet" href="post.css">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+
         <title>Disarray</title>
 
     </head>
@@ -23,6 +25,24 @@
         <p>
             Hello and welcome to my blog! As a postdoctoral researcher in machine learning and artificial intelligence, I’m here to share my journey, insights, and notes with you. I strive to be as clear and grounded as possible, and I hope you’ll find something interesting and valuable in my posts.
         </p>
+
+        <div onclick="location.href='posts/13-10-25-klevel-opt/index.html';" style="cursor: pointer;">
+        <article class="light-post-theme post-block"> 
+            <div class="post-inner">
+                <div class="post-title"> 
+                    <img src="icons/pin.svg" width=16px height=16px/> L2L: Layer-wise 2-Level Optimization
+                </div>
+                <div class="post-desc"> 
+                    In this post, I introduce a wild idea I came up with a few weeks ago— an outer-loop optimization scheme inspired by the <a href="https://arxiv.org/abs/2509.12117">K-Level Policy Gradients paper</a>. In short, the concept is that each layer’s updates should consider how other layers are being updated. This approach yields noticeable performance improvements, though at a significant computational cost. Since this is an early exploration, there’s still plenty of room for refinement.
+                </div>
+                <div class="post-foot"> 
+                    <img src="icons/clock.svg" width=12px height=12px/> Date: 13 October, 2025  |  Estimated Reading Time: ~10 min 
+                </div>
+            </div>
+        </article>
+        </div>
+        <br>
+
 
         <div onclick="location.href='posts/02-09-25-torch-distributed/index.html';" style="cursor: pointer;">
         <article class="light-post-theme post-block"> 
