@@ -164,5 +164,58 @@ const bibliography = {
         "author"  : "Kaddour, Jean",
         "journal" : "arXiv preprint arXiv:2304.08442",
         "year"    : "2023"
+    },
+    "Schulman17" : {
+        "title"   : "Proximal policy optimization algorithms",
+        "author"  : "Schulman, John and Wolski, Filip and Dhariwal, Prafulla and Radford, Alec and Klimov, Oleg",
+        "journal" : "arXiv preprint arXiv:1707.06347",
+        "year"    : "2017"
+    },
+    "Xu22" : {
+        "title"   : "Accelerated Policy Learning with Parallel Differentiable Simulation",
+        "author"  : "Jie Xu and Miles Macklin and Viktor Makoviychuk and Yashraj Narang and Animesh Garg and Fabio Ramos and Wojciech Matusik",
+        "journal" : "International Conference on Learning Representations",
+        "year"    : "2022",
+        "url"     : "https://openreview.net/forum?id=ZSKRQMvttc"
+    },
+    "Casadei22" : {
+        "title"   : "Scafi: A scala DSL and toolkit for aggregate programming",
+        "author"  : "Roberto Casadei and Mirko Viroli and Gianluca Aguzzi and Danilo Pianini",
+        "journal" : "SoftwareX",
+        "year"    : "2022",
+        "publisher" : "Elsevier"
+    },
+    "Bertolotti25" : {
+        "title"   : "SHAC++: A Neural Network to Rule All Differentiable Simulators",
+        "author"  : "Francesco Bertolotti and Gianluca Aguzzi and Walter Cazzola and Mirko Viroli and others",
+        "journal" : "frontiers in artificial intelligence and applications",
+        "year"    : "2025",
+        "publisher": "IOS Press"
+    },
+    "Bettini22" : {
+        "title" : "VMAS: A Vectorized Multi-Agent Simulator for Collective Robot Learning",
+        "author" : "Bettini, Matteo and Kortvelesy, Ryan and Blumenkamp, Jan and Prorok, Amanda",
+        "year" : "2022",
+        "journal" : "The 16th International Symposium on Distributed Autonomous Robotic Systems",
+        "publisher" : "Springer"
+    },
+    "Ma24" : {
+        "title"   : "Do Transformer World Models Give Better Policy Gradients?",
+        "author"  : "Michel Ma and Tianwei Ni and Clement Gehring and Pierluca D'Oro and Pierre-Luc Bacon",
+        "journal" : "Proceedings of the 41st International Conference on Machine Learning",
+        "year"    : "2024",
+        "publisher": "PMLR"
+    },
+    "Shengyi22" : {
+        "title" : "The 37 Implementation Details of Proximal Policy Optimization",
+        "author" : "Huang, Shengyi and Dossa, Rousslan Fernand Julien and Raffin, Antonin and Kanervisto, Anssi and Wang, Weixun",
+        "year" : "2022",
+        "journal" : "ICLR Blog Track"
+    },
+    "Yu22" : {
+        "title"   : "The surprising effectiveness of ppo in cooperative multi-agent games",
+        "author"  : "Chao Yu and Akash Velu and Eugene Vinitsky and Jiaxuan Gao and Yu Wang and Alexandre Bayen and Yi Wu",
+        "journal" : "Advances in neural information processing systems",
+        "year"    : "2022"
     }
 }
