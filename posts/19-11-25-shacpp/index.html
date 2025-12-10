@@ -23,147 +23,349 @@
 
             <h1>Wait, Backpropagating Through a World Model Is All You Need?</h1>
 
-            <p> A year ago, I was dabbling in model-based reinforcement learning, testing out PPO <span class="cite" value="Schulman17"></span> and SHAC <span class="cite" value="Xu22"></span>. While PPO struggled with almost everything we threw at it, SHAC was unexpectedly strong and remarkably stable-though it came with one big catch: it needs a fully differentiable environment, which is rarely easy to build. Me, clearly operating at the absolute peak of my deep-learning-researcher powers, naturally wondered: what if I just tossed a neural network at the problem? And, against all expectations---including mine---it sort of worked. </p>
+            <p> 
+                A year ago, I was dabbling in model-based reinforcement learning, testing out PPO <span class="cite" value="Schulman17"></span> and SHAC <span class="cite" value="Xu22"></span>. 
+                While PPO struggled with almost everything we threw at it, SHAC was unexpectedly strong and remarkably stable-though it came with one big catch: 
+                it needs a fully differentiable environment, which is rarely easy to build. 
+                Me, clearly operating at the absolute peak of my deep-learning-researcher powers, naturally wondered: 
+                what if I just tossed a neural network at the problem? And, against all expectations---including mine---it sort of worked. </p>
 
-            <h2> Origin Story of The Idea </h2>
+            <h2>Origin Story of the Idea</h2>
 
-            <p> At the start of 2024 spring, I got approached, through my advisor, from a research unit in Bologna. This unit is working a bit on AI and LLM, but it has history of working on field calculus and aggregate computing <span class="cite", value="Casadei22">. Quite an interesting field if you ask me. I am no expert on aggregate computing, and it has been more than a year that I approached the field. So, take everything I say regarding this with a grain of salt. Anyway, their problem was related to the fact that aggregate computing languages are too hard for common developers, and one would simply like to define a fitness function and then having an automatic system coming up with a program that maximized such fitness. </p>
+            <p>
+                In early Spring 2024, I was contacted---through my advisor---by a research unit in Bologna.
+                Have recently started working with AI and LLMs, but their long-term expertise
+                lies in field calculus and aggregate computing <span class="cite" value="Casadei22"></span>.
+                Quite an interesting area, if you ask me. I’m no expert in aggregate computing---and it had been
+                over a year since I last seriously engaged with it---so take everything I say on the topic with
+                a hint of skepticism. Anyway, the core issue they brought up was this: aggregate computing
+                languages are difficult for everyday developers, and ideally you’d just define a fitness function
+                and let an automated system generate a program that maximizes it.
+            </p>
 
-            <p> Our initial idea was to make make a differentiable programming language for aggregate computing, so that, one could use the derivatives with respect to a loss function to maximize such fitness. So, I got to work on a first prototype using pure torch. At this stage, I simply wanted to get a sense of how much the approach would work on a simple task. And the task of choice was very simple. Take \(n\) agents and let the agent distribute themselves so that they maximize the coverage of a given area. Each agent would have been governed by a small neural network and the network would have been trained with simple <a href="https://en.wikipedia.org/wiki/Backpropagation_through_time">back propagation through time</a> (BPTT). So I would have need just to simulate some steps in the environments, compute the loss, and the call <code>loss.backwards()</code>. Pretty easy. </p>
+            <p>
+                Our first idea? Build a differentiable programming language for aggregate computing, so we could
+                directly use gradients from a loss function to optimize behavior. So I started prototyping in pure
+                <a href="https://docs.pytorch.org/docs/stable/index.html">PyTorch</a>. 
+                The plan was simple enough: test whether the approach even worked on a tiny toy problem.
+                And the toy problem of choice was very straightforward---take \(n\) agents and have them position
+                themselves to maximize the coverage of a given area. Each agent would be controlled by a tiny
+                neural network, trained via <a href="https://en.wikipedia.org/wiki/Backpropagation_through_time">backpropagation through time</a> (BPTT).
+                All I had to do was simulate a few environment steps, compute a loss, and call
+                <code>loss.backward()</code>. Easy, right?
+            </p>
 
-            <p> So, I start to code. However, I quickly reached a point where you need to ask yourselves, how do you define a loss that gets the agents to cover as much area as possible. Of course, computing the area covered by the agents, considering possible intersection, is non easy, and you need to do it in such a way that it is differentiable. To me, the best way to compute the area of coverage would have been to sample a bunch of point and see if they fall inside one of the areas of the agents, that is, a pure Monte Carlo simulation. The only problem, this is not differentiable so I could not use this. </p>
+            <p>
+                Well…  not quite. I quickly hit a major roadblock: how exactly do you define a differentiable loss
+                that encourages agents to cover as much area as possible? Computing the total covered area---accounting
+                for overlaps---isn’t trivial, and doing it in a differentiable way is even trickier. My preferred
+                solution would have been a Monte Carlo estimate: sample a bunch of points and check whether they fall
+                inside any agent’s coverage zone. But Monte Carlo sampling is inherently non-differentiable. So that
+                option was out.
+            </p>
 
-            <p> Ok, now I was lost. So I decide to resort to my last card in the deck---using a neural network instead of a proper loss function. After all, the task was pretty easy and I could get as many data points as I wanted, and most important of all, a neural network is differentiable by design. So I trained this small network to predict the area of coverage of a bunch of agents, of which position was randomly initialized. And then I simply used it as a loss function. </p>
+            <p>
+                At that point, I was stuck. So I pulled my final trick: replace the loss function with a neural network.
+                Seriously. The task was simple enough, I could generate endless training data, and most importantly,
+                neural networks are differentiable by design. So I trained a small network to predict the coverage area
+                given the agents’ randomly initialized positions. Then I used that network’s output as the loss.
+            </p>
 
-            <p> The result was pretty surprising. In a few training step I had another network that could manage these agent to properly cover the given area minimizing overlaps. I was also able to scale the number of agent quite a bit. I can show an ugly gif a did while I was working on this.</p>
+            <p>
+                The results were surprisingly good. After just a few training steps, I had a second network that could
+                steer the agents to cover the area efficiently, minimizing overlap. I even managed to scale up the number
+                of agents quite a bit. Here’s an ugly little gif I made during the process---please judge kindly.
+            </p>
 
-            <center><img src="prototype.gif" alt="prototype scenario"style="width:50%; height:50%; object-fit:contain;"></center>
+            <center>
+                <img src="prototype.gif" alt="prototype scenario" style="width:50%; height:50%; object-fit:contain;">
+            </center>
 
-            <p> Here, the black dots are the agents. You can see them slowly spreading to cover the entire area. The red dots are the points where I would sample to compute the coverage area. I didnt even bother to use real Monte Carlo sampling, I simply used a grid of points. Clearly peaking at intelligence and sophistication here. </p>
+            <p>
+                The black dots represent the agents; you can watch them gradually spread out to cover the whole region.
+                The red dots are the sampled points used to estimate coverage. I didn’t even bother with true Monte Carlo
+                sampling---just a simple grid. Truly the pinnacle of elegance and sophistication.
+            </p>
 
-            <p> In the next meeting, I reported the result to both my advisor and research unit from Bologna. Since, we were all interested in exploring this idea a little more, we decide to divert our energies on exploring this a little bit further. And so we started working togheter on scaling this approach to more diverse scenarios. </p>
+            <p>
+                At the next meeting, I presented the results to my advisor and the Bologna team. Since everyone was intrigued
+                by the potential, we decided to channel our efforts into developing this idea further. And so began our journey
+                into scaling this approach to more diverse and complex scenarios.
+            </p>
 
-            <h2> Background </h2>
 
-            Environment ...
-            Transition Function ..
-            Transition Model ...
-            Reward Function ..
-            Reward Model ...
+            <h2>Background</h2>
 
-            <h3> Backpropagation Through Time </h3>
+            <h3> Notation </h3>
 
-            <p> BPTT is the most straightforward way to train a policy network in a differentiable environment. You design your network, let us call it \(\pi_\theta\) where \(\theta\) are the parameters of the network. Then, you get your differentiable environment function, let us call it \(\mathcal{E}\). This function takes as input the current state of the environment, a set of actions, and outputs the next state of the environment. Finally, you get your differentiable reward function, let us call it \(r\) which takes the current state of the environment and outputs a scalar reward. </p>
+            <p>
+                In reinforcement learning, we interact with an <strong>environment</strong> whose dynamics are governed by a true transition function \(F\).  
+                Because we rarely know \(F\) exactly---or because we prefer something differentiable---we often work with a <strong>differentiable transition model</strong> \(F_\theta\).  
+                Similarly, we distinguish between the true reward function \(R\) and its differentiable approximation \(R_\theta\).  
+                Finally, our agent acts using a policy model \(\pi_\theta\), parameterized by \(\theta\).
+            </p>
 
-            <p> Now, we can assemble everything together. We start from an initial state of the environment \(s_0\). Then, we sample actions from the policy network \(a_t \sim \pi_\theta(s_t)\). Then, we pass these actions to the environment to get the next state \(s_{t+1} = \mathcal{E}(s_t, a_t)\). We repeat this process for \(T\) steps, and at each step we collect the reward \(r_t = r(s_t)\). Finally, we compute the total reward as the sum of all rewards collected during the episode: \(R = \sum_{t=0}^{T} r_t\). You can also conside \(R\) as a big differentiable function that expands as follows:
+            <h3>Backpropagation Through Time</h3>
+
+            <p>
+                Backpropagation Through Time (BPTT) is the most direct way to train a policy network inside a fully differentiable environment.  
+                We define our policy network as \(\pi_\theta\), and assume access to a differentiable transition model \(F_\theta\) as well as a differentiable reward model \(R_\theta\).  
+                The transition model \(F_\theta(s_t, a_t)\) produces the next state, while the reward model \(R_\theta(s_t, a_t, s_{t+1})\) outputs a scalar reward for each transition.
+            </p>
+
+            <p>
+                Starting from an initial state \(s_0\), the policy samples actions \(a_t \sim \pi_\theta(s_t)\).  
+                These actions are fed into the transition model to obtain new states:
+                \[
+                    s_{t+1} = F_\theta(s_t, a_t).
+                \]
+                At each step we compute the reward
+                \[
+                    r_t = R_\theta(s_t, a_t, s_{t+1}).
+                \]
+                    After rolling out for \(T\) steps, the total return becomes
+                \[
+                    \mathcal{R}(s_0,\theta) = \sum_{t=0}^{T} r_t.
+                \]
+                    Because every component---policy, transition, and reward---is differentiable, \(\mathcal{R}(s_0,\theta)\) is itself a single (very large) differentiable computation graph:
+                \[
+                    \begin{aligned}
+                        \mathcal{R}(s_0,\theta)
+                        =& \sum_{t=0}^{T} R_\theta(s_t, \pi_\theta(s_t), F_\theta(s_t, \pi_\theta(s_t))) \\
+                        =& \sum_{t=0}^{T} R_\theta\!\Big(F_\theta(s_{t-1}, \pi_\theta(s_{t-1})),\,
+                        \pi_\theta(F_\theta(s_{t-1}, \pi_\theta(s_{t-1})))\Big) \\
+                        &\vdots
+                    \end{aligned}
+                \]
+            </p>
+
+            <p>
+                With this expression, we can compute gradients using standard automatic differentiation:
+                \[
+                    \nabla_\theta \mathcal{R}(s_0,\theta),
+                \]
+                and update the policy parameters via gradient ascent:
+                \[
+                    \theta \leftarrow \theta + \eta \,\nabla_\theta \mathcal{R}(s_0,\theta),
+                \]
+                where \(\eta\) is the learning rate.
+            </p>
+
+            <p>
+                And that's it---conceptually simple, especially in frameworks like PyTorch.  
+                But in practice? BPTT often collapses under its own weight.  
+                Long-horizon rollouts cause gradients to vanish, explode, or accumulate so much noise that training becomes unstable.  
+                In many real settings, BPTT barely trains at all.  
+                Fortunately, this is exactly where SHAC steps in.
+            </p>
+
+            <h3>Short-Horizon Actor-Critic</h3>
+
+            <p>
+                SHAC---Short-Horizon Actor-Critic---is designed to make differentiable-RL training feasible by embracing a simple idea:  
+                <strong>don’t backpropagate through a huge horizon; backpropagate through a short one.</strong>  
+                Instead of unrolling hundreds (or thousands) of steps, SHAC restricts gradient flow to a manageable \(H\) (often 32–64).
+            </p>
+
+            <p>
+            The original SHAC paper includes a value function to predict future returns beyond horizon \(H\), but in my experience, SHAC performs surprisingly well even <em>without</em> the value baseline.  
+            The real magic is simply shortening the gradient path.
+            </p>
+
+            <p>
+            The SHAC update is:
             \[
-                \begin{aligned}
-                R(s_0,\theta) =& \sum_{t=0}^{T} r_t \\
-                =& \sum_{t=0}^{T} r(s_t) \\
-                =& \sum_{t=0}^{T} r(\mathcal{E}(s_{t-1}, \pi_\theta(s_{t-1}))) \\
-                =& \sum_{t=0}^{T} r(\mathcal{E}(\mathcal{E}(s_{t-2}, \pi_\theta(s_{t-2})), \pi_\theta(\mathcal{E}(s_{t-2}, \pi_\theta(s_{t-2}))))) \\
-                &\vdots
-                \end{aligned}
+            \theta \leftarrow \theta + \eta \,\nabla_\theta \mathcal{R}_H(s_0,\theta),
+            \]
+            where \(\mathcal{R}_H\) denotes the return computed over the truncated horizon \(H\).
+            </p>
+
+            <p>
+            If you include a value function \(V\), the update becomes:
+            \[
+            \theta \leftarrow \theta + \eta \,\nabla_\theta \left( \mathcal{R}_H(s_0,\theta) + V(s_H,\theta) \right).
             \]
             </p>
 
-            <p> Since we have expressed \(R\) as a big differentiable function, we can now compute the gradient of \(R\) with respect to the parameters of the policy network \(\theta\) using backpropagation. This gradient tells us how to adjust the parameters of the policy network to maximize the total reward. Finally, we can use this gradient to update the parameters of the policy network using an optimization algorithm like stochastic gradient descent (SGD) or Adam. The updates become:
-            \[
-                \theta \leftarrow \theta + \eta \nabla_\theta R(s_0, \theta)
-            \]
-            where \(\eta\) is the learning rate.
+            <p>
+            Below is a visualization of SHAC’s computation graph structure:
             </p>
 
-            <p> That's it! and if you are coding everything in torch, using BPTT is incredibly simple and easy. However, in my experience, BPTT does not work very well. I would even say that it does not work at all in even simple scenarios. But why is that? To me the problem is that when you backpropagate through time for too many steps, the gradients tend to either vanish or explode as noise accumulates over time steps. This makes BPTT unstable and hard to train for long sequences. Fortunately, SHAC comes with a solution </p>
+            <center>
+                <img src="shac.svg" alt="SHAC" style="width:80%; height:80%; object-fit:contain;">
+            </center>
 
-            <h3> SHAC </h3>
+            <p>
+                In the figure:
+                <ul>
+                    <li>The reward function \(R\) is shown as small purple dots.</li>
+                    <li>The transition function \(F_\theta\) as small orange dots.</li>
+                    <li>The policy network \(\pi_\theta\) as small blue dots.</li>
+                    <li>The value model \(V_\theta\) as small cyan dots.</li>
+                    <li>States \(s_0, \ldots, s_4\) are large orange nodes.</li>
+                    <li>Actions \(a_0, \ldots, a_3\) are large blue nodes.</li>
+                    <li>Rewards \(r_0, \ldots, r_3\) are large purple nodes.</li>
+                    <li>Values \(v_1, \ldots, v_4\) (from the value function \(V\)) are large cyan nodes.</li>
+                </ul>
+            </p>
 
-            <p> SHAC, which stands for Short-Horizon Actor-Critic, is a reinforcement learning algorithm designed to address the challenges of training in differentiable environments over long time horizons. The key idea behind SHAC is to break down the long-horizon problem into a series of shorter-horizon problems (32-64 steps), which are easier to manage and optimize. </p>
+            <p>
+            Everything begins at \(s_0\).  
+            At each step, the policy samples an action \(a_t\), the transition model produces \(s_{t+1}\), and the reward model computes \(r_t\).  
+            Note that in VMAS the reward sometimes depends on the full transition \((s_t, a_t, s_{t+1})\), not just the state.  
+            If a value function is present, it evaluates each state to produce \(v_t\).  
+            All rewards and values feed into a final loss function \(L\), whose gradient flows backward through the entire short-horizon graph to update the policy parameters.
+            </p>
 
-            <p> The authors of SHAC also add a value function to estimate the expected future rewards from a given state. However, in my experience, SHAC achieves good results even without the value function. So, the core innovation was simply to limit the backpropagation to a limited number of steps. This way, the gradients remain fairly stable and the training proceeds smoothly. </p>
-
-            <p> We could write the SHAC update as follows.
-            \[
-                \theta \leftarrow \theta + \eta \nabla_\theta R(s_0, \theta)
-            \]
-            where \(H\) is the short horizon length. </p>
-
-            <p> If wanted the value function, you could add it as follows.
-            \[
-            \theta \leftarrow \theta + \eta \nabla_\theta \left(\sum_{t=0}^{H} R(s_0, \theta) + V(s_H)\right)
-            \]
-            where \(V\) is the value function. </p>
-
-            <p> I do also have a nice visualization of SHAC's architecture.</p>
-
-            <center><img src="shac.svg" alt="SHAC" style="width:80%; height:80%; object-fit:contain;"></center>
-
-            <p> Here, you have the Reward function \(R\) represented as small purple dot. The transition function represented as small orange dot \(F\), and the policy network represented as a blue dot \(\pi_\theta\). States are represented as large orange named dots, starting from \(s_0\) to \(s_4\). The value function is represented as a small cyan dot \(V\). Actions are represent as large blue named dots, starting from \(a_0\) to \(a_3\). Rewards are represented as large purple named dots, starting from \(r_0\) to \(r_3\). And finally, values are represented as large cyan named dots, starting from \(v_1\) to \(v_4\). </p>
-
-            <p> Everything stems out from the initial state \(s_0\). From this state, the policy network samples an action \(a_0\). This action is passed to the transition function along with the current state \(s_0\) to get the next state \(s_1\). \(s_1\) is then used from the policy network to sample the next action \(a_1\), and so on. The reward function gets called at each step to compute the reward \(r_t\). Notice that, here, the reward function takes as input the initial state, the action, and the next state. This is because in VMAS some rewards are computed based on the transition itself rather than some property of the state alone. The value function gets a state and produce an estimate \(v_t\). All rewards and values are then fed to the loss function which output a final scalar \(l\). This \(l\) is then backpropagated through the entire graph to compute the gradients with respect to the policy network parameters \(\theta\). </p>
-
-            <p> In this figure, everything is, and must, be differentiable. So every line representing the flow of data are solid. When we will discuss SHAC++, where some components may be non-differentiable, we will use dashed lines to represent that the flow could be non-differentiable. </p>
+            <p>
+            In this figure, every component is differentiable, so all connections are drawn as solid lines.  
+            Later, when we introduce SHAC++, we'll mark non-differentiable components using dashed lines to indicate where gradient flow breaks.
+            </p>
 
             <h2> SHAC++ </h2>
-
-            <p> I have to admit that SHAC is really impressive. It works really well in a variety of complex scenarios, and it performs well either in single and multi-agent scenarios. However, the need for a differentiable environment feels like a big limitation. After all, building differentiable environments is not easy, and not always possible. Think about you would compute the loss function for the first problem where agents need to cover an area. Or think to discrete environments, such as board games. </p>
-
-            <p> Replacing the differentiable environment with a learned model is a fairly natural idea. So, other than the transition function, we will add a world model \(F_\theta\) that will learn to simulate the environment dynamics. Further, we will add a reward model \(R_\theta\) that will learn to predict the reward given a states and an action. Both these models will be neural networks, and they will be trained alongside the policy network. </p>
-
-            <p> To be precise, our world model, will not simply be a transition function that predictis the next state given the previous one. Our world model will be an Action World Model. This means that we will feed to it the entire trajectory of actions  alongside the initial state, and the model will learn to predict all the future states at once. So, the architecture of the world model can be a standard decoder/encoder transformer. Which is both easy to implement, scales well, and it has proven to be very successful. Furthermore, we won't have to deal with recurrence which may impact gradient flow. </p>
-
-            <p> This will lead to have two different sets of states. One is the real state of the environment \(s_t\) that we will use to collect data on which we will train our world model and reward model. The other is the simulated state of the environment \(s'_t\). </p>
-
-            <p> Below you can see the architecture of SHAC++.</p>
-
-            <center><img src="shacpp.svg" alt="SHAC++" style="width:80%; height:80%; object-fit:contain;"></center>
-
-            <p> As you can see, the architecture is very similar to SHAC. The main difference is that now we dashed orange lines between real states \(s_t\) and the world model \(F_\theta\). Notice how the world model is fed with the initial state and all the actions of the trajectory to produce all the simulated states \(s'_t\) at once. </p>
-
-            <h2> Development </h2>
-
-            <p> To test this idea, we firstly needed a few environments to try out. We also wanted the environment to be differentiable, so that we could try to emulate the world and the reward model separately, so we naturally choose VMAS <span class="cite" value="Bettini22"></span>. VMAS offers several multi-agent differentiable environments built on top of torch. Our target was something like 4 environmente, ideally diverse from each other. Further, we needed a baseline. Our baseline of choice was PPO <span class="cite" value="Schulman17"></span>. Down the line, we also took inspiration from SHAC <span class="cite" value="Xu22"></span>. Actually, we aligned ourselves so much with SHAC that we decide to call our approach SHAC++<span class="cite" value="Bertolotti25"></span>.</p>
-
-            <p> So we started coding our approach, however, we quickly realized that we failed to scale pretty badly and we also experienced quite a bit of variance, sometimes we ended up with a good policy and some times we failed to converge. So we iterated on our approach, at first in the dark, then we find about of SHAC, and we aligned with many of the decision that the authors took: we removed the value function, we limited the number of environment steps before computing the loss. We were finally achieve good results on using these insights. At this point, our algorithm was simply SHAC where the reward function and the environment were replaced with a neural network and Action World Model <span class="cite" value="Ma24"> </p>
-
-            <p> The only notable updated we made was an additional loss term that tried to keep policy actions inside their action space (depending on the environment). To understand this better, consider that we have a policy network, this network outputs actions in \(\mathbb{R}^2\), however, the environment expects actions between \([-1, 1]^2\). So, before passing the actions to the environment, we clip them. However, this clipping operation does not provide any gradient signal to the policy network which is a problem when you are relying on backpropagation. To solve this, you can add an activattion function that normalizes the policy outputs to the action space, for example, \(tanh\) is a good candidate. However, this approach is fine if you transition function actually represents the real environment. In our case, however, we have a learned transition function on which on top there is a reward model. </p>
-
-            <p> When we train to maximize the reward model, things works like this. Backpropagation through the reward model tells us how the observations should change to maximize the reward. Then, backpropagating through the transition function, we get how the actions should change to get the desired observation's change. Especially early in training, when the transition and reward function do not represent the real environment well, it is not that difficult to imagine that making the input big will make the input big will make the output (the predicted reward) big as well. So the policy network will be signaled to output big values. And using something like \(tanh\) does not help, because the policy network will push the pre-activation values to be as big as possible which will saturate the \(tanh\) and lead to vanishing gradients. </p>
-
-            <p> The best solution that we found was to add a loss term that forced the policy network to keep their actions in the right action-space. This provides the stability necessary to not disrupt the policy while the transition and reward models adapt to the environment. More precisely, suppose the allowed actions space is \(l,r\), and suppose that \(x\) is the action of the policy network. Then the additional loss term would simply be:
-            \[
-                l(x,l,r) = \begin{cases}
-                    (l - x)^2 & \text{if } x < l \\
-                    (x - r)^2 & \text{if } x > r \\
-                    0 & \text{otherwise}
-                \end{cases}
-            \]
-
-            Although this does not appear as much. It was the crucial component that made everything work.
+            
+            <p>
+            I have to admit: SHAC is genuinely impressive. It works remarkably well across a wide range of challenging tasks, in both single-agent and multi-agent settings.  
+            But the requirement of a <em>differentiable</em> environment is a major constraint.  
+            Building such environments is often difficult, sometimes impossible.  
+            Think back to the very first area-coverage example---how would you define a differentiable loss for the covered area?  
+            Or consider discrete environments like board games, where differentiability simply doesn’t exist.
             </p>
 
+            <p>
+            Replacing the differentiable environment with a learned model is a natural next step.  
+            Beyond the policy model, we introduce a <strong>world model</strong> \(F_\theta\) that learns to simulate environment dynamics, and a <strong>reward model</strong> \(R_\theta\) that predicts rewards from states and actions.  
+            Both models are neural networks trained jointly with the policy.
+            </p>
 
-            <h2> Experiments </h2>
+            <p>
+            More precisely, our world model is not a simple next-state predictor.  
+            Instead, we adopt an <strong>Action World Model</strong> <span class="cite" value="Ma24"></span>: given an initial state and the full trajectory of actions, the model predicts the entire sequence of future states in one forward pass.  
+            This makes transformer-style encoder–decoder architectures a perfect fit---simple to implement, highly scalable, and free from recurrence, which helps maintain stable gradient flow.
+            Although, I believe a next-state predictor would work well too.
+            </p>
 
-            <p> We started off with pretty basic experiments as we will see later complex scenarios fail to scale due to a cold start problem. The environments of choice were the following four from VMAS. The first one is Dispersion, where agents need to spread to randomly sampled points. The second one is Discovery, where agents need to explore the environment to find hidden targets using sort of sensor atached to their base body. The third one is Transport, where agents need to push a box to a target location. The box is fairly heavy so agents need to push togheter to move it. The fourth one is sampling, where agents need to collect a reward that is spreaded in the environment. In all these scenarios, we tested with 1, 3, and 5 agents. Below, you have a visualization of the four scenarios. </p>
- 
+            <p>
+            This setup naturally gives rise to two notions of state.  
+            The <em>real</em> environment state \(s_t\) is used to collect trajectories that train the world and reward models.  
+            The <em>simulated</em> state \(s'_t\) is produced entirely by the world model.
+            </p>
+
+            <p>Below is the high-level architecture of SHAC++.</p>
+
+            <center>
+                <img src="shacpp.svg" alt="SHAC++" style="width:80%; height:80%; object-fit:contain;">
+            </center>
+
+            <p>
+            As shown, the structure closely mirrors SHAC.  
+            The key difference is the dashed orange connections, indicating that gradient flow does <em>not</em> pass through the real states \(s_t\).  
+            The world model receives the initial state and the entire action sequence, producing all simulated states \(s'_t\) in one shot.
+            </p>
+
+            <h2>Development</h2>
+
+            <p>
+            To test the idea, we first needed a suite of environments.  
+            We wanted differentiable environments to separately evaluate the fidelity of the world and reward models, so VMAS <span class="cite" value="Bettini22"></span> was the natural choice.  
+            VMAS provides several multi-agent differentiable environments built in PyTorch.  
+            Our goal was to evaluate across four diverse scenarios.  
+            As a baseline, we chose PPO <span class="cite" value="Schulman17"></span>, and later aligned many of our design choices with SHAC <span class="cite" value="Xu22"></span>.  
+            In fact, we aligned so closely with SHAC that we eventually named our approach SHAC++ <span class="cite" value="Bertolotti25"></span>.
+            </p>
+
+            <p>
+            We began implementing the method, but early experiments revealed two issues: poor scalability and high variance.  
+            Some runs converged to good policies; many others did not converge at all.  
+            After several rounds of iteration---initially in the dark---discovering SHAC helped immensely.  
+            We adopted several of its design principles: removing the value function, limiting the rollout horizon, and simplifying the training loop.  
+            With these adjustments, the method finally stabilized.  
+            At that stage, our algorithm was essentially SHAC with the environment and reward replaced by a World model a Reward model.
+            </p>
+
+            <p>
+            The only substantial modification we introduced was an additional loss term to keep the policy’s actions within the valid action space.  
+            To illustrate the issue: suppose the policy outputs actions in \(\mathbb{R}^2\), but the environment accepts only actions in \([-1,1]^2\).  
+            During rollout we clip the actions, but clipping provides no gradient signal.  
+            One common workaround is to place a \(\tanh\) activation at the policy output, but this causes the pre-activation values to grow uncontrollably and saturate the \(\tanh\), 
+            leading to vanishing gradients---especially problematic when the world and reward models are still inaccurate.
+            </p>
+
+            <p>
+            Here’s what happens during training: backpropagation through the reward model tells the system how observations should change to increase predicted reward.  
+            Backpropagating further through the world model tells us how actions should change to achieve those observation changes.  
+            Early in training, when both models are poorly calibrated, the easiest way for the system to increase predicted reward is simply to increase the magnitude of its inputs.  
+            The policy learns to output very large values, which then get clipped---and the clipping hides this behavior from the gradient.
+            </p>
+
+            <p>
+            The most stable solution we found was to add a penalty encouraging the policy to remain inside the valid action bounds.  
+            This stabilizes policy learning while the world and reward models adapt.  
+            Concretely, if the valid action range is \([l, r]\) and the policy outputs \(x\), we introduce the loss
+            \[
+                \ell(x,l,r) =
+                \begin{cases}
+                    (l - x)^2 & \text{if } x < l, \\
+                    (x - r)^2 & \text{if } x > r, \\
+                    0 & \text{otherwise}.
+                \end{cases}
+            \]
+            It may look small, but this term was absolutely essential for stabilizing training.
+            </p>
+
+            <h2>Experiments</h2>
+
+            <p>
+                We began with relatively simple experiments, since---as we will see----more complex scenarios suffer from a severe cold-start problem.  
+                The four environments we selected from VMAS are shown below.  
+                <strong>Dispersion:</strong> agents must move toward randomly sampled target points.  
+                <strong>Discovery:</strong> agents explore the environment to locate hidden targets using a sensor attached to their base body.  
+                <strong>Transport:</strong> agents must collectively push a heavy box to a goal location, requiring coordinated force.  
+                <strong>Sampling:</strong> agents collect spatially distributed reward mass scattered throughout the environment.  
+                Each scenario was tested with 1, 3, and 5 agents.  
+                A visualization of the environments is shown below.
+            </p>
+
             <table style="width:700px; height:700px; border-collapse:collapse;">
                 <tr>
-                    <td style="width:350px; height:350px; padding:0;"><img src="dispersion.gif" alt="Dispersion scenario"style="width:100%; height:100%; object-fit:contain;"></td>
-                    <td style="width:350px; height:350px; padding:0;"><img src="discovery.gif"  alt="Discovery scenario"style="width:100%; height:100%; object-fit:contain;"></td>
+                    <td style="width:350px; height:350px; padding:0;">
+                        <img src="dispersion.gif" alt="Dispersion scenario" style="width:100%; height:100%; object-fit:contain;">
+                    </td>
+                    <td style="width:350px; height:350px; padding:0;">
+                        <img src="discovery.gif" alt="Discovery scenario" style="width:100%; height:100%; object-fit:contain;">
+                    </td>
                 </tr>
                 <tr>
-                    <td style="width:350px; height:350px; padding:0;"><img src="transport.gif" alt="Transport scenario"style="width:100%; height:100%; object-fit:contain;"></td>
-                    <td style="width:350px; height:350px; padding:0;"><img src="sampling.gif" alt="Sampling scenario"style="width:100%; height:100%; object-fit:contain;"></td>
+                    <td style="width:350px; height:350px; padding:0;">
+                        <img src="transport.gif" alt="Transport scenario" style="width:100%; height:100%; object-fit:contain;">
+                    </td>
+                    <td style="width:350px; height:350px; padding:0;">
+                        <img src="sampling.gif" alt="Sampling scenario" style="width:100%; height:100%; object-fit:contain;">
+                    </td>
                 </tr>
             </table>
 
-            <p> For each environment, we tested 4 algorithms: PPO, SHAC, SHAC+, and SHAC++. PPO is our baseline, SHAC is the original SHAC algorithm with a differentiable environment. Since SHAC requires differentiable environments and reward functions, you can see that some entries are missing as these scenarios had either one of the components non-differentiable. SHAC+ is SHAC where only the reward function is replaced with a learned reward model. This allowed us to train on all 4 environments. Finally, SHAC++ is our full algorithm where both the environment and the reward function are replaced with learned models. We tested each algorithm on each environment with 1, 3, and 5 angets. On multi-agent settings, we used MAPPO <span class="cite" value="Yu22"></span> instead of PPO. </p>
+            <p>
+                For each environment, we evaluated four algorithms:  
+                <strong>PPO</strong>, our baseline;  
+                <strong>SHAC</strong>, the original differentiable short-horizon method;  
+                <strong>SHAC+</strong>, a variant of SHAC where only the reward function is replaced with a learned model;  
+                and <strong>SHAC++</strong>, our full approach in which both the transition model and reward function are learned.  
+            </p>
 
-            <p> Further, we tested two different architectures for the policy network: a simple MLP and a transformer. The transforemers takes all states from all agents and process them togheter and produce all actions at once. Since it does not really make sense to use a transformer like this one on a single-agent scenario, you can see that the related entries are missing. Further, to better visualize the results, we normalized the rewards to obtain a score between 0 and 1. </p>
+            <p>
+                SHAC requires both a differentiable transition and a differentiable reward, so some environments do not support SHAC out of the box; those entries are therefore absent.  
+                SHAC+, in contrast, requires only a differentiable transition function and thus runs on all four scenarios.  
+                SHAC++ removes both requirements entirely.
+            </p>
 
-            <p> Below, you can see the results of our experiments. As you can see, they draw a pretty favorable picture for SHAC++ where performs on par with SHAC in almost all scenarios despite not having access to a differentiable environment. The only scenario where SHAC++ struggles is the Discovery one with the MLP policy network. We do not a good explanation for this, but we believe that it has to do with the fact that the environment here is only partially observable, and the difference between observations and states can be quite big. </p>
- 
+            <p>
+                All algorithms were tested with 1, 3, and 5 agents.  
+                For multi-agent settings, we used MAPPO <span class="cite" value="Yu22"></span> instead of PPO.  
+                We also experimented with two different policy architectures:  
+                a simple <strong>MLP</strong>, and a <strong>transformer</strong> that processes all agents’ observations
+            </p>
+
             <table border="1" cellspacing="0" cellpadding="4">
                 <thead>
                     <tr>
@@ -253,35 +455,85 @@
                 </tbody>
             </table>
 
-            <p> Below, you can see a gif of SHAC++ solving the Transport scenario with 20 agents. You can see that here the algorithm is pretty successful in learning a policy that works well even with many agents. </p>
+            <p>
+                Below is a gif of SHAC++ solving the Transport scenario with 20 agents.  
+                Even at this scale, the algorithm successfully learns a coordinated policy that pushes the box to the goal.
+            </p>
 
-            <center><img src="transport-20.gif" alt="prototype scenario"style="width:50%; height:50%; object-fit:contain;"></center>
-            <h2> The Cold Start Problem </h2>
+            <center>
+                <img src="transport-20.gif" alt="Transport with 20 agents" style="width:50%; height:50%; object-fit:contain;">
+            </center>
 
-            <p> As every RL researcher knows, the current state of research in this field is very complext and it is difficult to discern what is a good approach and what does not work. Further, even popular algorithms require quite a bit of effort and tuning to make them work properly. I think the famous ICLR blog post <a href="https://iclr-blog-track.github.io/2022/03/25/ppo-implementation-details/">The 37 Implementation Details of Proximal Policy Optimization</a> <span class="cite" value="Shengyi22"></span> summarizes this quite well. </p>
+            <h2>The Cold Start Problem</h2>
 
-            <p> So, if you are considering to work with SHAC++, I want to make an effort in disclosing when and why our approach is not working to the best of my capabilities. First, recall that SHAC++ trains two additional neural networks alognside the policy network. These are the reward model and transition model. </p>
+            <p>
+                As every RL researcher knows, the field is enormously complex, and it is often difficult to determine what works, what does not, or why.  
+                Even widely used algorithms demand extensive tuning and careful engineering.  
+                The well-known ICLR blog post  
+                <a href="https://iclr-blog-track.github.io/2022/03/25/ppo-implementation-details/">The 37 Implementation Details of Proximal Policy Optimization</a>  
+                <span class="cite" value="Shengyi22"></span>  
+                captures this reality perfectly.
+            </p>
 
-            <p> As you may have guessed, until these two networks are not aligned well with the real environment, the policy network will receive bad gradient signals. So, we can expect that at the beginning of training, the policy model will perform mostly random actions. This is not a problem for those scenarios where random actions can lead to meaningful interactions with the environment and to occasional reward signals. However, for more complex scenarios, where the reward is sparse and random actions get you nowhere, this is a big problem. </p>
+            <p>
+                With that in mind, if you plan to experiment with SHAC++, I want to be transparent about where and why the method struggles.  
+                Recall that SHAC++ trains two additional neural networks alongside the policy: a <strong>reward model</strong> and a <strong>transition model</strong>.  
+                Until these models align reasonably well with the true environment, the policy will receive poor gradient signals---sometimes catastrophically poor.
+            </p>
 
-            <p> For example, consider those scenarios where the policy model controls a robot that needs to walk straight without falling. A random policy will likely make the robot fall immediately. And the states that will get from these trajectories won't contain any useful information from which the transition model and the reward model can learn. </p>
+            <p>
+                Early in training, the policy behaves almost randomly.  
+                This is fine in environments where random actions still lead to meaningful interactions and occasional rewards.  
+                But in environments with sparse rewards---where random behavior produces no useful feedback---this becomes a major obstacle.
+            </p>
 
-            <p> However, I am convinced that if we could find a way to bootstrap the world model and the reward model, SHAC++ would definetely shine, at least, as well as SHAC is able to do (but without the need of a differentiable environment). </p>
+            <p>
+                Consider scenarios where the agent controls a robot expected to walk forward without falling.  
+                A random policy will immediately faceplant.  
+                The resulting trajectories provide almost no informative data: both the transition model and reward model see nothing but "falling over immediately," and thus fail to learn anything useful.
+            </p>
 
-            <h2> Pretrained World Models </h2>
+            <p>
+                I am convinced that with a good way to <strong>bootstrap</strong> the world and reward models, SHAC++ could match or surpass SHAC----while removing the need for a differentiable environment entirely.
+            </p>
 
-            <p> This years I have heard talking about pretrained world model quite a bit. These are neural networks that simulate how the world works. </p>
+            <h2>Pretrained World Models</h2>
 
-            <p> Probably, the most notable example of world model is the <a href="https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/">Genie model family from Google DeepMind</a>. This is a incredibly powerful world model capable of simulating a vast amount of worlds. </p>
+            <p>
+                Over the past year, pretrained world models have gained significant attention.  
+                These are neural networks that attempt to simulate how the world evolves from sensory observations.
+            </p>
 
-            <p> We could very well use something like genie as a world model in place of a differentiable environment in SHAC. If an environment is available, we could also do a fine-tuning step of the world model on the specific environment, similarly to what we did with SHAC++. </p>
+            <p>
+                One of the most impressive examples is the  
+                <a href="https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/">Genie model family from Google DeepMind</a>.  
+                Genie is an extremely capable world model, trained across an enormous range of environments and interaction patterns.
+            </p>
 
-            <p> The only thing we lack would be a reward model. However, I think this would be fairly easy to extract from the world model's hidden states, probably with a small neural network trained on top of the world model. Why I believe this? Well, you can imagine that these world models have seen thousands of videogame playtroughs, and often videogames have a score that is continuosly updated. So it is very likely that these models already have a notion of progress towards a goal encoded in their hidden states. </p>
+            <p>
+                A model like Genie could, in principle, replace the differentiable environment component in SHAC.  
+                When an actual environment is available, it could be fine-tuned on that specific domain---exactly as we do in SHAC++.
+            </p>
 
+            <p>
+                The only remaining missing piece would be a reward model.  
+                However, extracting a reward estimator from the world model’s hidden states seems feasible.  
+                After all, such world models have been exposed to thousands of gameplay trajectories, many of which include score signals that change over time.  
+                It is plausible---and in my view likely---that the model already encodes a notion of "progress toward a goal" internally.  
+                A small neural network trained on top of these hidden representations might be enough to recover a reliable reward model.
+            </p>
 
-            <h2> Conclusion </h2>
+            <h2>Conclusion</h2>
 
-            <p> Now that you know everything about SHAC and SHAC++. You can see that the only innovation is the introduction of a world model and a reward model in place of real differentiable components. However, if we are able to scale the development of these world models, I believe that algorithms like SHAC could become incredibly powerful instilling generalization capabilities into agents fairly quickly. </p>
+            <p>
+                Now that you have an overview of both SHAC and SHAC++, it should be clear that the core innovation in SHAC++ lies in replacing differentiable environment components with a learned <strong>world model</strong> and <strong>reward model</strong>.  
+                This substitution may seem simple, but it offers a path toward applying SHAC-style training in domains where differentiable simulators are unavailable.
+            </p>
+
+            <p>
+                If we can scale the development of high-quality world models, approaches like SHAC could become remarkably powerful---providing agents with strong generalization abilities from relatively little real-environment interaction.  
+                In my view, this is a promising direction for the future of reinforcement learning.
+            </p>
 
             <h2> Useful Links </h2>
 
